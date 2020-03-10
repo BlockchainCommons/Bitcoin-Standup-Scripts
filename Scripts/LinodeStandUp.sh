@@ -248,12 +248,12 @@ echo "$0 - Downloading Bitcoin; this will also take a while!"
 
 # CURRENT BITCOIN RELEASE:
 # Change as necessary
-export BITCOIN="bitcoin-core-0.19.0.1"
+export BITCOIN="bitcoin-core-0.19.1"
 export BITCOINPLAIN=`echo $BITCOIN | sed 's/bitcoin-core/bitcoin/'`
 
-sudo -u standup wget https://bitcoin.org/bin/$BITCOIN/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz -O ~standup/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz
-sudo -u standup wget https://bitcoin.org/bin/$BITCOIN/SHA256SUMS.asc -O ~standup/SHA256SUMS.asc
-sudo -u standup wget https://bitcoin.org/laanwj-releases.asc -O ~standup/laanwj-releases.asc
+sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz -O ~standup/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz
+sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/SHA256SUMS.asc -O ~standup/SHA256SUMS.asc
+sudo -u standup wget https://bitcoincore.org/laanwj-releases.asc -O ~standup/laanwj-releases.asc
 
 # Verifying Bitcoin: Signature
 echo "$0 - Verifying Bitcoin."
