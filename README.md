@@ -67,3 +67,9 @@ After that you can run the script with the optional arguments like so:
 
 The arguments are optional, you can read more detail about them in the script itself.
 
+##### By Hand
+
+This is currently a work in progress (there is no Quick Connect URI at the end of install yet), but these instructions and scripts from the [Learning Bitcoin from the Command Line](https://github.com/ChristopherA/Learning-Bitcoin-from-the-Command-Line) course will also install Bitcoin-Core on a VPS or on Debian Linux.
+
+- [Section One: Setting Up a Bitcoin Core VPS by Hand](https://github.com/ChristopherA/Learning-Bitcoin-from-the-Command-Line/blob/master/02_1_Setting_Up_a_Bitcoin-Core_VPS_by_Hand.md)
+- [Section Two: Setting Up a Bitcoin Core VPS with StackScript](
