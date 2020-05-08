@@ -1,1 +1,0 @@
-Please see the [main README](../README.md) for this repo.
