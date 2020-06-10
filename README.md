@@ -54,9 +54,26 @@ The `$` represents a terminal command prompt; do not actually type in a `$`.
 
 ### Method Two: Install Using `LinodeStandup.sh`
 
-The `LinodeStandup.sh` script is intended for use at [Linode.com](https://linode.com). Just load it as a [Stackscript](https://cloud.linode.com/stackscripts?type=account) on your Linode account, and then choose to `Deploy New Linode` using that Stackscript from the Stackscript page. Once your Linode is created, you will need to boot it, at which point `LinodeStand.sh` will run.
+The `LinodeStandup.sh` script is intended for use at [Linode.com](https://linode.com). You can find more precise information on using it from our [Learning Bitcoin from the Command Line course](https://github.com/BlockchainCommons/Learning-Bitcoin-from-the-Command-Line/blob/master/02_2_Setting_Up_a_Bitcoin-Core_VPS_with_StackScript.md). The following is a summary.
 
-This script is based on a similar script from our [Learning Bitcoin from the Command Line](https://github.com/ChristopherA/Learning-Bitcoin-from-the-Command-Line) course. If you'd like more information on it, you can use the [docs there](https://github.com/ChristopherA/Learning-Bitcoin-from-the-Command-Line/blob/master/02_2_Setting_Up_a_Bitcoin-Core_VPS_with_StackScript.md) on creating a full node frm a stackscript, but be sure to use the [LinodeStandUp.sh script](Docs/LinodeStandUp.sh) from this repo, as it does more advanced things, like install tor and link in to QuickConnect API.
+First, copy the `LinodeStandup.sh` script to your Linode:
+
+1. Copy the complete [LinodeStandup.sh script](https://github.com/BlockchainCommons/Bitcoin-Standup-Scripts/blob/master/Scripts/LinodeStandUp.sh).
+2. Go to the [Stackscripts page](https://cloud.linode.com/stackscripts?type=account) on your Linode account; choose [Create New Stackscript](https://cloud.linode.com/stackscripts/create)
+3. Paste `LinodeStandup.sh` into the "Script" area. Make sure you got it all, from the "#!/bin/bash" to the "exit 1"!
+4. Choose "Debian 9" (Stretch) for the "Target Images".
+5. Click "Save".
+
+Second, create a node based on the script:
+
+6. On the [Stackscripts page](https://cloud.linode.com/stackscripts?type=account), click on the "..." to the right of your new script and choose "Deploy New Linode".
+7. Fill in a hostname and the password for the "standup" user.
+8. Choose an Installation Type in your options. This is likely "Mainnet" or "Pruned Mainnet" if you are setting up a node for usage and "Pruned Testnet" if you're just playing around.
+9. Fill in any other advanced options.
+10. Choose a region for where the Linode will be located.
+11. Choose a Linnode plan. Our general experience is that a Linode 8GB is needed to store the whole blockchain if you choose unpruned "Mainnet", while for testnet and the pruned options (and regtest) you'll instead be dependent on memory, where a Linode 4GB will definitely be sufficient, and a Linode 2GB has worked or not on various versions of Bitcoin Core. (If it fails, you'll get out-of-memory errors.)
+12. Enter a root password.
+13. Click "Create".
 
 ### Method Three: Install by Hand (Not Recommended)
 
