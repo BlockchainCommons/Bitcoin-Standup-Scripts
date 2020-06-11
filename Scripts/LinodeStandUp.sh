@@ -262,7 +262,7 @@ sudo -u standup /usr/bin/gpg --no-tty --import ~standup/laanwj-releases.asc
 export SHASIG=`sudo -u standup /usr/bin/gpg --no-tty --verify ~standup/SHA256SUMS.asc 2>&1 | grep "Good signature"`
 echo "SHASIG is $SHASIG"
 
-if [ $SHASIG ]
+if [ "$SHASIG" ]
 then
 
     echo "$0 - VERIFICATION SUCCESS / SIG: $SHASIG"
