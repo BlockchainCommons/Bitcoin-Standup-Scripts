@@ -121,6 +121,9 @@ apt-get dist-upgrade -y
 # Install haveged (a random number generator)
 apt-get install haveged -y
 
+# Install GPG
+apt-get install gnupg -y
+
 # Set system to automatically update
 echo "unattended-upgrades unattended-upgrades/enable_auto_updates boolean true" | debconf-set-selections
 apt-get -y install unattended-upgrades
