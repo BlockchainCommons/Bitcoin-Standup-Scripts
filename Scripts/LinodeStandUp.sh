@@ -84,7 +84,7 @@ echo $HOSTNAME > /etc/hostname
 /bin/hostname $HOSTNAME
 
 # Set the variable $IPADDR to the IP address the new Linode receives.
-IPADDR=$(/sbin/ifconfig eth0 | awk '/inet / { print $2 }' | sed 's/addr://')
+IPADDR=`hostname -I | awk '{print $1}'`
 
 echo "$0 - Set hostname as $FQDN ($IPADDR)"
 echo "$0 - TODO: Put $FQDN with IP $IPADDR in your main DNS file."
@@ -120,6 +120,9 @@ apt-get dist-upgrade -y
 
 # Install haveged (a random number generator)
 apt-get install haveged -y
+
+# Install GPG
+apt-get install gnupg -y
 
 # Set system to automatically update
 echo "unattended-upgrades unattended-upgrades/enable_auto_updates boolean true" | debconf-set-selections
@@ -253,7 +256,7 @@ export BITCOINPLAIN=`echo $BITCOIN | sed 's/bitcoin-core/bitcoin/'`
 
 sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz -O ~standup/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz
 sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/SHA256SUMS.asc -O ~standup/SHA256SUMS.asc
-sudo -u standup wget https://bitcoincore.org/laanwj-releases.asc -O ~standup/laanwj-releases.asc
+sudo -u standup wget https://bitcoin.org/laanwj-releases.asc -O ~standup/laanwj-releases.asc
 
 # Verifying Bitcoin: Signature
 echo "$0 - Verifying Bitcoin."
@@ -262,7 +265,7 @@ sudo -u standup /usr/bin/gpg --no-tty --import ~standup/laanwj-releases.asc
 export SHASIG=`sudo -u standup /usr/bin/gpg --no-tty --verify ~standup/SHA256SUMS.asc 2>&1 | grep "Good signature"`
 echo "SHASIG is $SHASIG"
 
-if [ $SHASIG ]
+if [ "$SHASIG" ]
 then
 
     echo "$0 - VERIFICATION SUCCESS / SIG: $SHASIG"
