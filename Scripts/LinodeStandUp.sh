@@ -84,7 +84,7 @@ echo $HOSTNAME > /etc/hostname
 /bin/hostname $HOSTNAME
 
 # Set the variable $IPADDR to the IP address the new Linode receives.
-IPADDR=$(/sbin/ifconfig eth0 | awk '/inet / { print $2 }' | sed 's/addr://')
+IPADDR=`hostname -I | awk '{print $1}'`
 
 echo "$0 - Set hostname as $FQDN ($IPADDR)"
 echo "$0 - TODO: Put $FQDN with IP $IPADDR in your main DNS file."
