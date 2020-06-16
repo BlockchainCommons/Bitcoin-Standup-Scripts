@@ -61,7 +61,7 @@ First, copy the `LinodeStandup.sh` script to your Linode:
 1. Copy the complete [LinodeStandup.sh script](https://github.com/BlockchainCommons/Bitcoin-Standup-Scripts/blob/master/Scripts/LinodeStandUp.sh).
 2. Go to the [Stackscripts page](https://cloud.linode.com/stackscripts?type=account) on your Linode account; choose [Create New Stackscript](https://cloud.linode.com/stackscripts/create)
 3. Paste `LinodeStandup.sh` into the "Script" area. Make sure you got it all, from the "#!/bin/bash" to the "exit 1"!
-4. Choose "Debian 9" (Stretch) for the "Target Images".
+4. Choose "Debian 10" (Buster) for the "Target Images".
 5. Click "Save".
 
 Second, create a node based on the script:
