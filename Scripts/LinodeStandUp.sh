@@ -73,6 +73,10 @@ then
   
 fi
 
+# CURRENT BITCOIN RELEASE:
+# Change as necessary
+export BITCOIN="bitcoin-core-0.19.1"
+
 # Output stdout and stderr to ~root files
 exec > >(tee -a /root/standup.log) 2> >(tee -a /root/standup.log /root/standup.err >&2)
 
@@ -222,7 +226,7 @@ sudo systemctl restart tor.service
 if ! [[ $PUBKEY == "" ]]
 then
 
-  # create the directory manually incase tor.service did not restart quickly enough
+  # create the directory manually in case tor.service did not restart quickly enough
   mkdir /var/lib/tor/standup/authorized_clients
 
   # Create the file for the pubkey
@@ -249,9 +253,6 @@ fi
 # Download Bitcoin
 echo "$0 - Downloading Bitcoin; this will also take a while!"
 
-# CURRENT BITCOIN RELEASE:
-# Change as necessary
-export BITCOIN="bitcoin-core-0.19.1"
 export BITCOINPLAIN=`echo $BITCOIN | sed 's/bitcoin-core/bitcoin/'`
 
 sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz -O ~standup/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz
@@ -292,7 +293,7 @@ else
 fi
 
 # Install Bitcoin
-echo "$0 - Installinging Bitcoin."
+echo "$0 - Installing Bitcoin."
 
 sudo -u standup /bin/tar xzf ~standup/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz -C ~standup
 /usr/bin/install -m 0755 -o root -g root -t /usr/local/bin ~standup/$BITCOINPLAIN/bin/*
@@ -449,7 +450,7 @@ sudo systemctl enable bitcoind.service
 sudo systemctl start bitcoind.service
 
 ####
-# 6. Install QR encoder and displayer, and show the btcstandup:// uri in plain text incase the QR Code does not display
+# 7. Install QR encoder and displayer, and show the btcstandup:// uri in plain text incase the QR Code does not display
 ####
 
 # Get the Tor onion address for the QR code
