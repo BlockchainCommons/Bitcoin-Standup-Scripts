@@ -17,8 +17,8 @@ For more information on *Bitcoin-Standup*:
 
 There are two linux based StandUp scripts; `StandUp.sh` and `LinodeStandUp.sh`.
 
-* `LinodeStandUp.sh` is built as a StackScript for the Linode platform and can be used as is.
-* `StandUp.sh` can be used on a Debian VPS and has been tested on Debian Stretch and Ubuntu 18.04.
+* `LinodeStandUp.sh` is built as a StackScript for the Linode platform and can be used as is. It's been tested on Debian 9 (Stretch) and Debian 10 (Buster).
+* `StandUp.sh` can be used on a Debian VPS and has been tested on Debian 9 (Stretch) and Ubuntu 18.04.
 
 You will use different installation methods depending on which script you use (or if you want to run the installation entirely by hand)
 
