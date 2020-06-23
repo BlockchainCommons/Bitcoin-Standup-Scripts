@@ -98,7 +98,7 @@ then
 
   echo "$0 - You need to be logged in as root!"
   exit 1
-  
+
 fi
 
 # Output stdout and stderr to ~root files
@@ -117,6 +117,12 @@ apt-get dist-upgrade -y
 
 # Install haveged (a random number generator)
 apt-get install haveged -y
+
+# Install GPG
+apt-get install gnupg -y
+
+# Install dirmngr
+apt-get install dirmngr
 
 # Set system to automatically update
 echo "unattended-upgrades unattended-upgrades/enable_auto_updates boolean true" | debconf-set-selections
@@ -184,7 +190,8 @@ deb-src https://deb.torproject.org/torproject.org $DEBIAN_VERSION main
 EOF
 
 # Then add the gpg key used to sign the packages by running:
-sudo curl https://deb.torproject.org/torproject.org/A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc | gpg --import
+sudo apt-key adv --recv-keys --keyserver keys.gnupg.net  74A941BA219EC810
+sudo wget -qO- https://deb.torproject.org/torproject.org/A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc | gpg --import
 sudo gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | apt-key add -
 
 # Update system, install and run tor as a service
@@ -213,17 +220,20 @@ sudo systemctl restart tor.service
 
 
 # add V3 authorized_clients public key if one exists
-if ! [ $PUBKEY == "" ]
+if ! [ "$PUBKEY" == "" ]
 then
 
   # create the directory manually incase tor.service did not restart quickly enough
   mkdir /var/lib/tor/standup/authorized_clients
 
+  # need to assign the owner
+  chown -R debian-tor:debian-tor /var/lib/tor/standup/authorized_clients
+
   # Create the file for the pubkey
   sudo touch /var/lib/tor/standup/authorized_clients/fullynoded.auth
 
   # Write the pubkey to the file
-  sudo echo $PUBKEY > /var/lib/tor/standup/authorized_clients/fullynoded.auth
+  sudo echo "$PUBKEY" > /var/lib/tor/standup/authorized_clients/fullynoded.auth
 
   # Restart tor for authentication to take effect
   sudo systemctl restart tor.service
@@ -245,12 +255,12 @@ echo "$0 - Downloading Bitcoin; this will also take a while!"
 
 # CURRENT BITCOIN RELEASE:
 # Change as necessary
-export BITCOIN="bitcoin-core-0.19.1"
+export BITCOIN="bitcoin-core-0.20.0"
 export BITCOINPLAIN=`echo $BITCOIN | sed 's/bitcoin-core/bitcoin/'`
 
 sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz -O ~standup/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz
 sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/SHA256SUMS.asc -O ~standup/SHA256SUMS.asc
-sudo -u standup wget https://bitcoincore.org/laanwj-releases.asc -O ~standup/laanwj-releases.asc
+sudo -u standup wget https://bitcoin.org/laanwj-releases.asc -O ~standup/laanwj-releases.asc
 
 # Verifying Bitcoin: Signature
 echo "$0 - Verifying Bitcoin."
@@ -259,15 +269,15 @@ sudo -u standup /usr/bin/gpg --no-tty --import ~standup/laanwj-releases.asc
 export SHASIG=`sudo -u standup /usr/bin/gpg --no-tty --verify ~standup/SHA256SUMS.asc 2>&1 | grep "Good signature"`
 echo "SHASIG is $SHASIG"
 
-if [[ $SHASIG ]]
+if [[ "$SHASIG" ]]
 then
 
     echo "$0 - VERIFICATION SUCCESS / SIG: $SHASIG"
-    
+
 else
 
     (>&2 echo "$0 - VERIFICATION ERROR: Signature for Bitcoin did not verify!")
-    
+
 fi
 
 # Verify Bitcoin: SHA
@@ -278,11 +288,11 @@ if [ "$TARSHA256" == "$EXPECTEDSHA256" ]
 then
 
    echo "$0 - VERIFICATION SUCCESS / SHA: $TARSHA256"
-   
+
 else
 
     (>&2 echo "$0 - VERIFICATION ERROR: SHA for Bitcoin did not match!")
-    
+
 fi
 
 # Install Bitcoin
@@ -303,10 +313,6 @@ RPCPASSWORD=$(xxd -l 16 -p /dev/urandom)
 
 cat >> ~standup/.bitcoin/bitcoin.conf << EOF
 server=1
-dbcache=1536
-par=1
-maxuploadtarget=137
-maxconnections=16
 rpcuser=StandUp
 rpcpassword=$RPCPASSWORD
 rpcallowip=127.0.0.1
@@ -383,59 +389,44 @@ sudo cat > /etc/systemd/system/bitcoind.service << EOF
 # options or overwrite existing ones then use
 # $ systemctl edit bitcoind.service
 # See "man systemd.service" for details.
-
 # Note that almost all daemon options could be specified in
 # /etc/bitcoin/bitcoin.conf, except for those explicitly specified as arguments
 # in ExecStart=
-
 [Unit]
 Description=Bitcoin daemon
 After=tor.service
 Requires=tor.service
-
 [Service]
 ExecStart=/usr/local/bin/bitcoind -conf=/home/standup/.bitcoin/bitcoin.conf
-
 # Process management
 ####################
 Type=simple
 PIDFile=/run/bitcoind/bitcoind.pid
 Restart=on-failure
-
 # Directory creation and permissions
 ####################################
-
 # Run as bitcoin:bitcoin
 User=standup
 Group=sudo
-
 # /run/bitcoind
 RuntimeDirectory=bitcoind
 RuntimeDirectoryMode=0710
-
 # Hardening measures
 ####################
-
 # Provide a private /tmp and /var/tmp.
 PrivateTmp=true
-
 # Mount /usr, /boot/ and /etc read-only for the process.
 ProtectSystem=full
-
 # Disallow the process and all of its children to gain
 # new privileges through execve().
 NoNewPrivileges=true
-
 # Use a new /dev namespace only populated with API pseudo devices
 # such as /dev/null, /dev/zero and /dev/random.
 PrivateDevices=true
-
 # Deny the creation of writable and executable memory mappings.
 MemoryDenyWriteExecute=true
-
 [Install]
 WantedBy=multi-user.target
-
 EOF
 
 echo "$0 - Starting bitcoind service"
@@ -451,17 +442,6 @@ HS_HOSTNAME=$(sudo cat /var/lib/tor/standup/hostname)
 
 # Create the QR string
 QR="btcstandup://StandUp:$RPCPASSWORD@$HS_HOSTNAME:1309/?label=StandUp.sh"
-echo "$0 - Ready to display the QuickConnect QR, first we need to install qrencode and fim"
-
-# Get software packages for encoding a QR code and displaying it in a terminal
-sudo apt-get install qrencode
-sudo apt-get install fim
-
-# Create the QR
-qrencode -m 10 -o qrcode.png "$QR"
-
-# Display the QR code
-fim -a qrcode.png
 
 # Display the uri text incase QR code does not work
 echo "$0 - **************************************************************************************************************"
