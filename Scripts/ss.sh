@@ -60,7 +60,7 @@ This script can be installed on any Debian based system. By default this script 
 * Install HWI
 * Install c-lightning
 * Setup Bitcoin Core, Lightning settings
-* Make sure they start at reboot via upstart or systemd
+* Make sure they start at reboot via systemd
 * Start Bitcoin Core, Lightning
 
 Optionally you can install:
@@ -71,7 +71,7 @@ Optionally you can install:
 
 You can run this script again if you desire to change your configuration.
 
-Upon completion of the script their will be a QR code saved to /qrcode.png which
+Upon completion of the script there will be a QR code saved to /qrcode.png which
 you can open and scan. You can use "$ sudo apt-get install fim" then:
 "$ fim -a qrcode.png" to display the QR in a terminal (as root).
 
@@ -80,9 +80,9 @@ even if your QR code is compromised an attacker would not be able to access your
 node. It is also recommended to delete the /qrcode.png, /standup.log, and
 /standup.err files.
 
---------------------------------------
-|                Usage                |
---------------------------------------
+ --------------------------------------
+|                Usage                 |
+ --------------------------------------
 
 0. Prerequisites
 ----------------
@@ -303,7 +303,7 @@ key="$1"
       shift 1
       ;;
     -n|--network)
-      if [ ${2:0:1} == "-" ]
+      if [ "${2:0:1}" == "-" ]
       then
         echo "Network flag passed without value. Installing default network: mainnet."
       shift 1
@@ -318,7 +318,7 @@ key="$1"
       shift 1
       ;;
     -p|--prune)
-      if [ ${2:0:1} == "-" ]
+      if [ "${2:0:1}" == "-" ]
       then
         echo "Prune flag passed without value. Installing default: unpruned node."
       shift 1
@@ -341,7 +341,7 @@ key="$1"
       shift 1
       ;;
     -l|--lightning)
-      if [ ${2:0:1} == "-" ]
+      if [ "${2:0:1}" == "-" ]
       then
         echo "Lightning flag passed without specifying the implementation. Installing default implementation: c-lightning"
       shift 1
@@ -439,7 +439,7 @@ SYS_SSH_IP..: $SYS_SSH_IP
 # prompt user before continuing with installation
 if ! "$NOPROMPT"
 then
-  read -p "Continue with installation? (Y/n): " confirm
+  read -rp  "Continue with installation? (Y/n): " confirm
 fi
 
 if [[ "$confirm" != [yY] ]]
@@ -462,7 +462,7 @@ echo "
 ----------------"
 echo "HOSTNAME: $HOSTNAME" > /etc/hostname
 echo "----------------"
-/bin/hostname $HOSTNAME
+/bin/hostname "$HOSTNAME"
 
 IPADDR=""
 REGION=""
@@ -512,7 +512,7 @@ apt-get dist-upgrade -y
 
 # Install haveged (a random number generator)
 
-if [ -z $(which haveged) ]
+if [ -z "$(which haveged)" ]
 then
   echo "
 ----------------
@@ -523,15 +523,11 @@ then
   "
   apt-get install haveged -y
 echo "
-----------------
-"
-echo "$0 - haveged installed successfully"
-echo "
-----------------
+----------------$0 - haveged installed successfully
 "
 else
   echo "
-  ----------------haveged already installed"
+  ----------------$0 - haveged already installed"
 fi
 
 # Set system to automatically update
@@ -545,14 +541,10 @@ echo "
 echo "unattended-upgrades unattended-upgrades/enable_auto_updates boolean true" | debconf-set-selections
 apt-get -y install unattended-upgrades
 echo "
-----------------
-"
-echo "$0 - Updated Debian Packages"
-echo "
-----------------
+----------------$0 - Debian Packages updated
 "
 # Get uncomplicated firewall and deny all incoming connections except SSH
-if [ -z $(which ufw) ]
+if [ -z "$(which ufw)" ]
 then
   echo "
 ----------------
@@ -565,19 +557,15 @@ then
 fi
 
 ufw allow ssh
-ufw enable
+ufw --force enable
 
 echo "
-----------------
-"
-echo "$0 - ufw is installed and enabled."
-echo "
-----------------
+----------------$0 - ufw is installed and enabled.
 "
 
 # Get GPG if not installed to verify signatures
 
-if [ -z $(which gpg) ]
+if [ -z "$(which gpg)" ]
 then
   echo "
 ----------------
@@ -588,11 +576,7 @@ then
   "
   apt-get install gnupg2 -y
   echo "
-----------------
-  "
-  echo "Gnupg2 not found and installed"
-  echo "
-----------------
+----------------$0 - Gnupg2 not found and installed
   "
 fi
 
@@ -600,7 +584,7 @@ fi
 # 3. Create user admin
 ####
 
-if [ -z $(cat /etc/shadow | grep standup) ] && [ -z $(groups standup) ]
+if [ -z "$(cat /etc/shadow | grep standup)" ] && [ -z "$(groups standup)" ]
 then
   echo "
 ----------------
@@ -677,9 +661,21 @@ echo "
 ----------------
 "
 #  To use source lines with https:// in /etc/apt/sources.list the apt-transport-https package is required. Install it with:
-if ! [ -z $(which apt-transport-https) ]
+if [ -z "$(which apt-transport-https)" ]
 then
-  apt-get install apt-transport-https
+  apt-get install apt-transport-https -y
+  echo "
+  --------------apt-transport-https installed
+  "
+fi
+
+# To download bitcoin using onion site, we need torsocks
+if [ -z "$(which torsocks)" ]
+then
+  apt-get install torsocks -y
+  echo "
+  --------------torsocks installed
+  "
 fi
 
 # We need to set up our package repository before you can fetch Tor. First, you need to figure out the name of your distribution:
@@ -691,14 +687,20 @@ deb https://deb.torproject.org/torproject.org $DEBIAN_VERSION main
 deb-src https://deb.torproject.org/torproject.org $DEBIAN_VERSION main
 EOF
 
+# # hardcoding stretch
+# cat >> /etc/apt/sources.list << EOF
+# deb https://deb.torproject.org/torproject.org stretch main
+# deb-src https://deb.torproject.org/torproject.org stretch main
+# EOF
+
 # Then add the gpg key used to sign the packages by running:
-apt-key adv --recv-keys --keyserver keys.gnupg.net  74A941BA219EC810
+# apt-key adv --recv-keys --keyserver keys.gnupg.net  74A941BA219EC810
 wget -qO- https://deb.torproject.org/torproject.org/A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc | gpg --import
-sudo gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | apt-key add -
+gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | apt-key add -
 
 # Update system, install and run tor as a service
 apt-get update
-apt-get install tor deb.torproject.org-keyring
+apt-get install tor deb.torproject.org-keyring -y
 
 # Setup hidden service
 sed -i -e 's/#ControlPort 9051/ControlPort 9051/g' /etc/tor/torrc
@@ -715,11 +717,14 @@ chown -R debian-tor:debian-tor /var/lib/tor/standup
 chmod 700 /var/lib/tor/standup
 
 # Add standup to the tor group so that the tor authentication cookie can be read by bitcoind
-sudo usermod -a -G debian-tor standup
+usermod -a -G debian-tor standup
 
 # Restart tor to create the HiddenServiceDir
-sudo systemctl restart tor.service
+systemctl restart tor.service
 
+
+echo "
+--------------$0 - Tor installed and successfully started"
 
 # add V3 authorized_clients public key if one exists
 if ! [ "$TOR_PUBKEY" == "" ]
@@ -731,13 +736,13 @@ then
   chown -R debian-tor:debian-tor /var/lib/tor/standup/authorized_clients
 
   # Create the file for the pubkey
-  sudo touch /var/lib/tor/standup/authorized_clients/fullynoded.auth
+  touch /var/lib/tor/standup/authorized_clients/fullynoded.auth
 
   # Write the pubkey to the file
-  sudo echo "$TOR_PUBKEY" > /var/lib/tor/standup/authorized_clients/fullynoded.auth
+  echo "$TOR_PUBKEY" > /var/lib/tor/standup/authorized_clients/fullynoded.auth
 
   # Restart tor for authentication to take effect
-  sudo systemctl restart tor.service
+  systemctl restart tor.service
 
   echo "$0 - Successfully added Tor V3 authentication"
 
@@ -765,9 +770,22 @@ echo "$0 - Downloading Bitcoin; this will take a while!"
 export BITCOIN="bitcoin-core-0.20.0"
 export BITCOINPLAIN=`echo $BITCOIN | sed 's/bitcoin-core/bitcoin/'`
 
-sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz -O ~standup/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz
-sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/SHA256SUMS.asc -O ~standup/SHA256SUMS.asc
-sudo -u standup wget https://bitcoincore.org/laanwj-releases.asc -O ~standup/laanwj-releases.asc
+# # get bitcoin tar.gz, shasums and signing keys
+# clearnet
+# sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz -O ~standup/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz
+# sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/SHA256SUMS.asc -O ~standup/SHA256SUMS.asc
+# sudo -u standup wget https://bitcoin.org/laanwj-releases.asc -O ~standup/laanwj-releases.asc
+
+# tor
+# tar: http://6hasakffvppilxgehrswmffqurlcjjjhd76jgvaqmsg6ul25s7t3rzyd.onion/bin/bitcoin-core-0.20.0/bitcoin-0.20.0-x86_64-linux-gnu.tar.gz
+sudo -u standup torsocks wget http://6hasakffvppilxgehrswmffqurlcjjjhd76jgvaqmsg6ul25s7t3rzyd.onion/bin/$BITCOIN/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz -O ~standup/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz
+
+# get shasums: http://6hasakffvppilxgehrswmffqurlcjjjhd76jgvaqmsg6ul25s7t3rzyd.onion/bin/bitcoin-core-0.20.0/SHA256SUMS.asc
+sudo -u standup torsocks wget http://6hasakffvppilxgehrswmffqurlcjjjhd76jgvaqmsg6ul25s7t3rzyd.onion/bin/$BITCOIN/SHA256SUMS.asc ~standup/SHA256SUMS.asc
+
+sudo -u standup wget https://bitcoin.org/laanwj-releases.asc -O ~standup/laanwj-releases.asc
+# 404
+sudo -u standup torsocks wget http://6hasakffvppilxgehrswmffqurlcjjjhd76jgvaqmsg6ul25s7t3rzyd.onion/laanwj-releases.asc -O ~standup/laanwj-releases.asc
 
 # Verifying Bitcoin: Signature
 echo "$0 - Verifying Bitcoin."
