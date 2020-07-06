@@ -7,7 +7,7 @@ set +x
 # If script not sourced, stop here
 if [[ "$0" = "$BASH_SOURCE" ]]; then
     echo "This script must be sourced like so: \"source standup.sh\""
-    return
+    return 1
 fi
 
 # define help
@@ -35,7 +35,7 @@ TL;DR:
 -----------------------
 $ source ./ss.sh -y --userpassword <password> -n testnet -p 10000 --no-hwi -l lnd --btcpay --esplora --tor-pubkey <tor-pubkey> --ssh-key <ssh-key> --sys-ssh-ip <ip_1, ip_2, ..>
 
-This will first create a new user "standup" and set the <password> for that user. Then install Bitcoin Testnet pruned to 10000 Mb with no HWI, LND, BTCPAY Server, Esplora Server on the machine pre-authenticated with Tor so all communications are by default routed through Tor (even the installation data requirements). It willadd the passed SSH Key to authorized hosts and add the comma separated list of IPs to the whitelist.
+This will first create a new user "standup" and set the <password> for that user. Then install Bitcoin Testnet pruned to 10000 Mb with no HWI, LND, BTCPAY Server, Esplora Server on the machine pre-authenticated with Tor so all communications are by default routed through Tor (even bitcoin core). It will add the passed SSH Key to authorized keys and add the comma separated list of IPs to the whitelist. It will set bitcoin to restart after a crash or reboot.
 
 2. Exporting environment variables:
 -----------------------------------
@@ -111,8 +111,8 @@ You can use the following optional arguments:
 
     Setup:
     ------
-    --no-startup-register : Do not set Bitcoind & Lightning to start after reboot.
-    --no-systemd-reload : Do not set Bitcoind & Lightning to start after crash.
+    # --no-startup-register : Do not set Bitcoind & Lightning to start after reboot.
+    # --no-systemd-reload : Do not set Bitcoind & Lightning to start after crash.
     -v --vps : Pass when installing on a VPS.
     --userpassword : Password for the standup non-privileged account.
 
@@ -156,8 +156,8 @@ You can use the following optional arguments:
     --------
     NOPROMPT=true/false, set it to install the setup without prompting for confirmation.
     # START=true/false, start bitcoind & lightning after installation. Default: true.
-    STARTUP_REGISTER=true/false, Do not set Bitcoind & Lightning to start after reboot. Default: true.
-    SYSTEMD_RELOAD=true/false, Do not set Bitcoind & Lightning to start after crash. Default: true.
+    # STARTUP_REGISTER=true/false, Do not set Bitcoind & Lightning to start after reboot. Default: true.
+    # SYSTEMD_RELOAD=true/false, Do not set Bitcoind & Lightning to start after crash. Default: true.
     VPS=true/false, set it to true if setting up on a VPS. Default: false.
     USERPASSWORD="", set password for user standup. Default: empty.
 
@@ -200,8 +200,8 @@ END
 
 # system
 NOPROMPT=false
-STARTUP_REGISTER=true
-SYSTEMD_RELOAD=true
+# STARTUP_REGISTER=true
+# SYSTEMD_RELOAD=true
 VPS=false
 USERPASSWORD=""
 
@@ -243,7 +243,7 @@ echo "----------------"
 if ! [ "$(id -u)" = 0 ]
 then
   echo "$0 - You need to be logged in as root!"
-  return
+  return 2
 fi
 
 echo "$0 - Logged in as root. Continuing with installation."
@@ -264,20 +264,20 @@ key="$1"
   case $key in
     -h|--help)
       help
-      return
+      return 3
       ;;
     -y)
       NOPROMPT=true
       shift 1
       ;;
-    --no-startup-register)
-      STARTUP_REGISTER=false
-      shift 1
-      ;;
-    --no-systemd-reload)
-      SYSTEMD_RELOAD=false
-      shift 1
-      ;;
+    # --no-startup-register)
+    #   STARTUP_REGISTER=false
+    #   shift 1
+    #   ;;
+    # --no-systemd-reload)
+    #   SYSTEMD_RELOAD=false
+    #   shift 1
+    #   ;;
     --vps)
       VPS=true
       shift 1
@@ -312,7 +312,7 @@ key="$1"
         NETWORK="$2"
       else
         echo "ERROR: Network has to be either mainnet, testnet or regtest. Passed $2"
-        return
+        return 4
       fi
       shift 1
       shift 1
@@ -327,7 +327,7 @@ key="$1"
         PRUNE="$2"
       else
         echo "ERROR: Minimum prune value is 550. Passed $2"
-        return
+        return 5
       fi
       shift 1
       shift 1
@@ -350,7 +350,7 @@ key="$1"
         LIGHTNING="$2"
       else
         echo "ERROR: Invalid lightning implementation. Pass c-lightning or lnd. Passed $2"
-        return
+        return 6
       fi
       shift 1
       shift 1
@@ -385,7 +385,7 @@ key="$1"
     -*|--*=) # unsupported flags
       echo "Error: Unsupported flag $1" >&2
       help
-      return
+      return 7
       ;;
     *) # preserve positional arguments
       PARAMS="$PARAMS $1"
@@ -436,6 +436,36 @@ SSH_KEY.....: $SSH_KEY
 SYS_SSH_IP..: $SYS_SSH_IP
 "
 
+# source /home/vagrant/ss.sh -p 1000 -n testnet --no-hwi
+
+# Check for FQDN & HOSTNAME if --vps
+if "$VPS" && [[ -z "$HOSTNAME" ]]
+then
+  echo "You provided the '--vps' flag but didn't provide --fqdn"
+  while  [ -z "$HOSTNAME" ]
+  do
+    read -rp "You need to enter hostname of the server: " HOSTNAME
+  done
+fi
+
+if "$VPS" && [[ -z "$FQDN" ]]
+then
+  echo "You provided the '--vps' flag but didn't provide --fqdn."
+  while [ -z "$FQDN" ]
+  do
+    read -rp "You need to enter the fqdn of the server: " FQDN
+  done
+fi
+
+if "$VPS" && [[ -z "$REGION" ]]
+then
+  echo "You provided the '--vps' flag but didn't provide --region."
+  while [ -z "$REGION" ]
+  do
+    read -rp "You need to enter the region of the server to set the timezone: " REGION
+  done
+fi
+
 # prompt user before continuing with installation
 if ! "$NOPROMPT"
 then
@@ -445,30 +475,29 @@ fi
 if [[ "$confirm" != [yY] ]]
 then
   echo "Entered $confirm. Exiting.."
-  return
+  return 8
 else
   NOPROMPT=true
   echo "Installing Bitcoin!"
 fi
 
 
-
 ####
 # 1. Update Hostname and set timezone
 ####
 
-
-echo "
-----------------"
-echo "HOSTNAME: $HOSTNAME" > /etc/hostname
-echo "----------------"
-/bin/hostname "$HOSTNAME"
-
 IPADDR=""
 REGION=""
 
-if $VPS
+if "$VPS"
 then
+
+  echo "
+----------------"
+  echo "HOSTNAME: $HOSTNAME" > /etc/hostname
+  echo "----------------"
+  /bin/hostname "$HOSTNAME"
+
   # Set the variable $IPADDR to the IP address the new Linode receives.
   IPADDR=$(/sbin/ifconfig eth0 | awk '/inet / { print $2 }' | sed 's/addr://')
 
@@ -476,21 +505,21 @@ then
   echo "
   ***********************"
   echo "$0 - TODO: Put $FQDN with IP $IPADDR in your main DNS file."
-  echo "***********************
+  echo "  ***********************
   "
   echo "$0 - Set Time Zone to $REGION"
   echo $REGION > /etc/timezone
   cp /usr/share/zoneinfo/${REGION} /etc/localtime
 
   echo "Hostname, IP address and timezon are set. Put $FQDN with IP $IPADDR in your main DNS file."
+  # Add localhost aliases
+
+  echo "127.0.0.1    localhost" > /etc/hosts
+  echo "127.0.1.1 $FQDN $HOSTNAME" >> /etc/hosts
+
+  echo "$0 - Set localhost"
 fi
 
-# Add localhost aliases
-
-echo "127.0.0.1    localhost" > /etc/hosts
-echo "127.0.1.1 $FQDN $HOSTNAME" >> /etc/hosts
-
-echo "$0 - Set localhost"
 
 
 ####
@@ -695,12 +724,12 @@ EOF
 
 # Then add the gpg key used to sign the packages by running:
 # apt-key adv --recv-keys --keyserver keys.gnupg.net  74A941BA219EC810
-wget -qO- https://deb.torproject.org/torproject.org/A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc | gpg --import
-gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | apt-key add -
+sudo wget -qO- https://deb.torproject.org/torproject.org/A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc | gpg --import
+sudo gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | apt-key add -
 
 # Update system, install and run tor as a service
-apt-get update
-apt-get install tor deb.torproject.org-keyring -y
+sudo apt update
+sudo apt install tor deb.torproject.org-keyring -y
 
 # Setup hidden service
 sed -i -e 's/#ControlPort 9051/ControlPort 9051/g' /etc/tor/torrc
@@ -717,14 +746,18 @@ chown -R debian-tor:debian-tor /var/lib/tor/standup
 chmod 700 /var/lib/tor/standup
 
 # Add standup to the tor group so that the tor authentication cookie can be read by bitcoind
-usermod -a -G debian-tor standup
+sudo usermod -a -G debian-tor standup
 
 # Restart tor to create the HiddenServiceDir
-systemctl restart tor.service
+sudo systemctl restart tor.service
 
 
+if [ "$(systemctl is-active tor) | grep active" ]
+then
 echo "
---------------$0 - Tor installed and successfully started"
+--------------$0 - Tor installed and successfully started
+"
+fi
 
 # add V3 authorized_clients public key if one exists
 if ! [ "$TOR_PUBKEY" == "" ]
@@ -742,13 +775,21 @@ then
   echo "$TOR_PUBKEY" > /var/lib/tor/standup/authorized_clients/fullynoded.auth
 
   # Restart tor for authentication to take effect
-  systemctl restart tor.service
+  sudo systemctl restart tor.service
 
-  echo "$0 - Successfully added Tor V3 authentication"
+  echo "
+  ---------$0 - Successfully added Tor V3 authentication
+  "
 
 else
-  echo "$0 - No Tor V3 authentication, anyone who gets access to your QR code can have full access to your node, ensure you do not store more then you are willing to lose and better yet use the node as a watch-only wallet"
+  echo "
+  ---------$0 - No Tor V3 authentication, anyone who gets access to your QR code can have full access to your node, ensure you do not store more then you are willing to lose and better yet use the node as a watch-only wallet
+  "
 fi
+
+
+# sleep 4 seconds
+sleep 4
 
 
 ####
@@ -756,14 +797,11 @@ fi
 ####
 
 echo "
-----------------
-"
+----------------"
 echo "Installing Bitcoin"
-echo "
-----------------
+echo "----------------
 "
 # Download Bitcoin
-echo "$0 - Downloading Bitcoin; this will take a while!"
 
 # CURRENT BITCOIN RELEASE:
 # Change as necessary
@@ -778,27 +816,67 @@ export BITCOINPLAIN=`echo $BITCOIN | sed 's/bitcoin-core/bitcoin/'`
 
 # tor
 # tar: http://6hasakffvppilxgehrswmffqurlcjjjhd76jgvaqmsg6ul25s7t3rzyd.onion/bin/bitcoin-core-0.20.0/bitcoin-0.20.0-x86_64-linux-gnu.tar.gz
+
+if ! [ -f ~standup/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz ]
+then
+  echo "
+  -----------
+  Downloading $BITCOIN, this will take a while!
+-----------
+"
 sudo -u standup torsocks wget http://6hasakffvppilxgehrswmffqurlcjjjhd76jgvaqmsg6ul25s7t3rzyd.onion/bin/$BITCOIN/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz -O ~standup/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz
+fi
 
 # get shasums: http://6hasakffvppilxgehrswmffqurlcjjjhd76jgvaqmsg6ul25s7t3rzyd.onion/bin/bitcoin-core-0.20.0/SHA256SUMS.asc
-sudo -u standup torsocks wget http://6hasakffvppilxgehrswmffqurlcjjjhd76jgvaqmsg6ul25s7t3rzyd.onion/bin/$BITCOIN/SHA256SUMS.asc ~standup/SHA256SUMS.asc
 
+if [[ -f ~standup/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz ]] && ! [[ -f ~standup/SHA256SUMS.asc ]]
+then
+  echo "--------------$0 - $BITCOINPLAIN-x86_64-linux-gnu.tar.gz exists at /home/standup/
+  "
+  echo "----$0 - downloading SHA256SUMS.asc for $BITCOIN
+#   "
+sudo -u standup torsocks wget http://6hasakffvppilxgehrswmffqurlcjjjhd76jgvaqmsg6ul25s7t3rzyd.onion/bin/$BITCOIN/SHA256SUMS.asc -O ~standup/SHA256SUMS.asc
+else
+  return 100
+fi
+
+if [[ -f ~standup/SHA256SUMS.asc ]]
+then
+  echo "----------$0 - SHA256SSUMS.asc exists at /home/standup/"
+fi
+
+if ! [[ -f ~standup/laanwj-releases.asc ]]
+then
+  echo "-----$0 - downloading laanwj-release signature"
 sudo -u standup wget https://bitcoin.org/laanwj-releases.asc -O ~standup/laanwj-releases.asc
+fi
+
 # 404
-sudo -u standup torsocks wget http://6hasakffvppilxgehrswmffqurlcjjjhd76jgvaqmsg6ul25s7t3rzyd.onion/laanwj-releases.asc -O ~standup/laanwj-releases.asc
+# sudo -u standup torsocks wget http://6hasakffvppilxgehrswmffqurlcjjjhd76jgvaqmsg6ul25s7t3rzyd.onion/laanwj-releases.asc -O ~standup/laanwj-releases.asc
 
 # Verifying Bitcoin: Signature
-echo "$0 - Verifying Bitcoin."
+echo "
+-----------------
+$0 - Verifying Bitcoin.
+-----------------
+"
 
 sudo -u standup /usr/bin/gpg --no-tty --import ~standup/laanwj-releases.asc
 export SHASIG=`sudo -u standup /usr/bin/gpg --no-tty --verify ~standup/SHA256SUMS.asc 2>&1 | grep "Good signature"`
-echo "SHASIG is $SHASIG"
+echo "
+---------SHASIG is $SHASIG
+"
 
 if [[ $SHASIG ]]
 then
-  echo "$0 - VERIFICATION SUCCESS / SIG: $SHASIG"
+  echo "
+  ------$0 - VERIFICATION SUCCESS / SIG: $SHASIG
+  "
 else
-  (>&2 echo "$0 - VERIFICATION ERROR: Signature for Bitcoin did not verify!")
+  (>&2 echo "
+  ------------$0 - VERIFICATION ERROR: Signature for Bitcoin did not verify!
+  ")
+  # return 101
 fi
 
 # Verify Bitcoin: SHA
@@ -807,20 +885,32 @@ export EXPECTEDSHA256=`cat ~standup/SHA256SUMS.asc | grep $BITCOINPLAIN-x86_64-l
 
 if [ "$TARSHA256" == "$EXPECTEDSHA256" ]
 then
-  echo "$0 - VERIFICATION SUCCESS / SHA: $TARSHA256"
+  echo "
+  ------$0 - VERIFICATION SUCCESS / SHA: $TARSHA256
+  "
 else
-  (>&2 echo "$0 - VERIFICATION ERROR: SHA for Bitcoin did not match!")
+  (>&2 echo "
+  -----------$0 - VERIFICATION ERROR: SHA for Bitcoin did not match!
+  ")
+  # return 102
 fi
 
 # Install Bitcoin
-echo "$0 - Installing Bitcoin."
+echo "--------------"
+echo "
+$0 - Installing Bitcoin.
+"
+echo "--------------
+"
 
 sudo -u standup /bin/tar xzf ~standup/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz -C ~standup
 /usr/bin/install -m 0755 -o root -g root -t /usr/local/bin ~standup/$BITCOINPLAIN/bin/*
 /bin/rm -rf ~standup/$BITCOINPLAIN/
 
 # Start Up Bitcoin
-echo "$0 - Configuring Bitcoin."
+echo "
+------$0 - Configuring Bitcoin.
+"
 
 sudo -u standup /bin/mkdir ~standup/.bitcoin
 
@@ -873,7 +963,9 @@ EOF
 /bin/chmod 600 ~standup/.bitcoin/bitcoin.conf
 
 # Setup bitcoind as a service that requires Tor
-echo "$0 - Setting up Bitcoin as a systemd service."
+echo "
+-------$0 - Setting up Bitcoin as a systemd service.
+"
 
 sudo cat > /etc/systemd/system/bitcoind.service << EOF
 # It is not recommended to modify this file in-place, because it will
@@ -921,28 +1013,88 @@ MemoryDenyWriteExecute=true
 WantedBy=multi-user.target
 EOF
 
-echo "$0 - Starting bitcoind service"
+echo "
+-------$0 - Starting bitcoind service
+"
 sudo systemctl enable bitcoind.service
 sudo systemctl start bitcoind.service
 
 ####
 # 6. Install QR encoder and displayer, and show the btcstandup:// uri in plain text incase the QR Code does not display
 ####
+if [ "$(systemctl is-active --quiet bitcoind) | grep active" ]
+then
+  # Get the Tor onion address for the QR code
+  HS_HOSTNAME=$(sudo cat /var/lib/tor/standup/hostname)
 
-# Get the Tor onion address for the QR code
-HS_HOSTNAME=$(sudo cat /var/lib/tor/standup/hostname)
+  # Create the QR string
+  QR="btcstandup://StandUp:$RPCPASSWORD@$HS_HOSTNAME:1309/?label=StandUp.sh"
 
-# Create the QR string
-QR="btcstandup://StandUp:$RPCPASSWORD@$HS_HOSTNAME:1309/?label=StandUp.sh"
+  # Display the uri text incase QR code does not work
+  echo "$0 - **************************************************************************************************************"
+  echo "$0 - This is your btcstandup:// uri to convert into a QR which can be scanned with FullyNoded to connect remotely:"
+  echo $QR
+  echo "$0 - **************************************************************************************************************"
+  echo "
+  $0 - Bitcoin is setup as a service and will automatically start if your VPS reboots and so is Tor
+  "
+  echo "
+  $0 - You can manually stop Bitcoin with: sudo systemctl stop bitcoind.service
+  "
+  echo "
+  $0 - You can manually start Bitcoin with: sudo systemctl start bitcoind.service
+  "
+else
+  echo "
+  ERROR: Bitcoind service not running hence QR code or URI  not generated. Exiting.
+  "
+fi
 
-# Display the uri text incase QR code does not work
-echo "$0 - **************************************************************************************************************"
-echo "$0 - This is your btcstandup:// uri to convert into a QR which can be scanned with FullyNoded to connect remotely:"
-echo $QR
-echo "$0 - **************************************************************************************************************"
-echo "$0 - Bitcoin is setup as a service and will automatically start if your VPS reboots and so is Tor"
-echo "$0 - You can manually stop Bitcoin with: sudo systemctl stop bitcoind.service"
-echo "$0 - You can manually start Bitcoin with: sudo systemctl start bitcoind.service"
+
+
+
+####
+# Lightning
+####
+
+
+
+####
+# RESETTING Environment Variables
+####
+
+# system
+NOPROMPT=false
+STARTUP_REGISTER=true
+SYSTEMD_RELOAD=true
+VPS=false
+USERPASSWORD=""
+
+# vps
+FQDN=""
+HOSTNAME=""
+REGION=""
+
+# bitcoind
+NETWORK="mainnet"
+PRUNE=""
+FASTSYNC=false
+HWI=true
+
+# lightning
+LIGHTNING="c-lightning"
+
+# services
+ESPLORA=false
+BTCPAYSERVER=false
+
+# Tor
+TOR_PUBKEY=""
+
+# ssh
+SSH_KEY=""
+SYS_SSH_IP=""
+
 
 # Finished, exit script
 exit 0
