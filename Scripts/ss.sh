@@ -716,12 +716,6 @@ deb https://deb.torproject.org/torproject.org $DEBIAN_VERSION main
 deb-src https://deb.torproject.org/torproject.org $DEBIAN_VERSION main
 EOF
 
-# # hardcoding stretch
-# cat >> /etc/apt/sources.list << EOF
-# deb https://deb.torproject.org/torproject.org stretch main
-# deb-src https://deb.torproject.org/torproject.org stretch main
-# EOF
-
 # Then add the gpg key used to sign the packages by running:
 # apt-key adv --recv-keys --keyserver keys.gnupg.net  74A941BA219EC810
 sudo wget -qO- https://deb.torproject.org/torproject.org/A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc | gpg --import
