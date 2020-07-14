@@ -3,7 +3,6 @@
 # standup script - vps hostname settings
 
 IPADDR=""
-REGION=""
 
 # Check for FQDN & HOSTNAME if --vps
 if "$VPS" && [[ -z "$HOSTNAME" ]]
@@ -35,8 +34,9 @@ fi
 
 echo "
 ----------------"
-echo "HOSTNAME: $HOSTNAME" > /etc/hostname
-echo "----------------"
+HOSTNAME: $HOSTNAME" > /etc/hostname
+----------------
+"
 /bin/hostname "$HOSTNAME"
 
 # Set the variable $IPADDR to the IP address the new Linode receives.
@@ -45,14 +45,16 @@ IPADDR=$(/sbin/ifconfig eth0 | awk '/inet / { print $2 }' | sed 's/addr://')
 echo "$0 - Set hostname as $FQDN ($IPADDR)"
 echo "
   ***********************"
-echo "$0 - TODO: Put $FQDN with IP $IPADDR in your main DNS file."
-echo "  ***********************
+    $0 - TODO: Put $FQDN with IP $IPADDR in your main DNS file."
+  ***********************
 "
 echo "$0 - Set Time Zone to $REGION"
 echo $REGION > /etc/timezone
 cp /usr/share/zoneinfo/${REGION} /etc/localtime
 
-echo "Hostname, IP address and timezon are set. Put $FQDN with IP $IPADDR in your main DNS file."
+echo "
+  -------$0 - Hostname, IP address and timezon are set. Put $FQDN with IP $IPADDR in your main DNS file.
+  "
 # Add localhost aliases
 
 echo "127.0.0.1    localhost" > /etc/hosts

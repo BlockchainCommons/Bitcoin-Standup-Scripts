@@ -2,16 +2,25 @@
 
 # standup script help
 
+# TODO: add bold to flags & vars (echo -e "\x1b[1m bold") or using vars bold=$(tput bold) normal=$(tput sgr0)
+
 # help definition
 function help () {
+
+# echo -e ''
+
+bold=$(tput bold)
+normal=$(tput sgr0)
+underline=$(tput smul)
+
 cat <<-END
 
 
 --------------------------------------
-Install StandUp Script on this server.
+${bold}Install StandUp Script on this server.${normal}
 --------------------------------------
 
-standup.sh
+${underline}standup.sh${normal}
 
 Blockchain Commons Standup Script
 Contributor: jodobear 20-07-03
@@ -131,6 +140,7 @@ You can use the following optional arguments:
     ----------
     --no-ln : Do NOT install lightning.
     -l --lightning : Choose lightning implementation, either "c-lightning" or "lnd".
+    --ln-alias : Enter name for your lightning node.
 
     Services:
     ---------
@@ -176,6 +186,7 @@ You can use the following optional arguments:
     # lightning
     -----------
     LIGHTNING="c-lightning"/"lnd"/false, choose lightning network implementation or pass --no-ln to not install lightning. Default: "c-lightning".
+    LN_ALIAS="", enter a name for your lightning node. Default: "Standup.
 
     # services
     ----------

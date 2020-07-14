@@ -1,8 +1,11 @@
-#!/bin/bash
+#!bin/bash
 
 # standup.sh
 
-set +x
+# TODO: Get opinion on `` vs $() as backticks are portable to legacy shells
+# TODO: Sort c-lightning & lnd installation
+
+set +ex
 
 # If script not sourced, stop here
 if [[ "$0" = "$BASH_SOURCE" ]]; then
@@ -16,8 +19,6 @@ fi
 
 # system
 NOPROMPT=false
-# STARTUP_REGISTER=true
-# SYSTEMD_RELOAD=true
 VPS=false
 USERPASSWORD=""
 
@@ -34,6 +35,7 @@ HWI=true
 
 # lightning
 LIGHTNING="c-lightning"
+LN_ALIAS="StandUp"
 
 # services
 ESPLORA=false
@@ -65,14 +67,6 @@ key="$1"
       NOPROMPT=true
       shift 1
       ;;
-    # --no-startup-register)
-    #   STARTUP_REGISTER=false
-    #   shift 1
-    #   ;;
-    # --no-systemd-reload)
-    #   SYSTEMD_RELOAD=false
-    #   shift 1
-    #   ;;
     --vps)
       VPS=true
       shift 1
@@ -98,11 +92,11 @@ key="$1"
       shift 1
       ;;
     -n|--network)
-      if [ "${2:0:1}" == "-" ]
+      if [ "${2:0:1}" = "-" ]
       then
         echo "Network flag passed without value. Installing default network: mainnet."
       shift 1
-      elif [[ -n "$2" ]] && [[ "$2" == "mainnet" ]] || [[ "$2" == "testnet" ]] || [[ "$2" == "regtest" ]]
+      elif [[ -n "$2" ]] && [[ "$2" = "mainnet" ]] || [[ "$2" = "testnet" ]] || [[ "$2" = "regtest" ]]
       then
         NETWORK="$2"
       else
@@ -116,7 +110,7 @@ key="$1"
       shift 1
       ;;
     -p|--prune)
-      if [ "${2:0:1}" == "-" ]
+      if [ "${2:0:1}" = "-" ]
       then
         echo "Prune flag passed without value. Installing default: unpruned node."
       shift 1
@@ -125,10 +119,11 @@ key="$1"
         PRUNE="$2"
       else
         echo "ERROR: Minimum prune value is 550. Passed $2"
-        while [[ "$PRUNE" -lt 550 ]]
-        do
-          read -pr "Enter a value above 550 or 0 if you want to install an unpruned node (you can change this later): " PRUNE
-        done
+        # while [[ "$PRUNE" -lt 550 ]]
+        # do
+        #   read -pr "Enter a value above 550 or 0 if you want to install an unpruned node (you can change this later): " PRUNE
+        # done
+        return 1
       fi
       shift 1
       shift 1
@@ -146,20 +141,31 @@ key="$1"
       shift 1
       ;;
     -l|--lightning)
-      if [ "${2:0:1}" == "-" ]
+      if [ "${2:0:1}" = "-" ]
       then
         echo "Lightning flag passed without specifying the implementation. Installing default implementation: c-lightning"
       shift 1
-      elif [[ -n "$2" ]] && [[ "$2" == "c-lightning" ]] || [[ "$2" == "lnd" ]]
+      elif [[ -n "$2" ]] && [[ "$2" = "c-lightning" ]] || [[ "$2" = "lnd" ]]
       then
         LIGHTNING="$2"
       else
-        echo "ERROR: Invalid lightning implementation. Pass c-lightning or lnd. Passed $2"
-        while [[ "$LIGHTNING" != "c-lightning" ]] || [[ "$LIGHTNING" != "lnd" ]] || [[ "$LIGHTNING" != false ]]
-        do
-          read -pr "Enter c-lightning or lnd implementations or false if you don't want to install lightning: " LIGHTNING
-        done
+        if [[ -z "$2" ]]
+        then
+          echo "ERROR: You provided the flag -l or --lightning but didn't provide the implementation. Please enter c-lightning or lnd."
+        else
+        echo "ERROR: Invalid lightning implementation. Pass c-lightning or lnd. Passed $2."
+        fi
+        # while [[ "$LIGHTNING" != "c-lightning" ]] || [[ "$LIGHTNING" != "lnd" ]]
+        # do
+        #   read -pr "Enter c-lightning or lnd implementations or false if you don't want to install lightning: " LIGHTNING
+        # done
+        return 1
       fi
+      shift 1
+      shift 1
+      ;;
+    --ln-alias)
+      LN_ALIAS="$2"
       shift 1
       shift 1
       ;;
@@ -213,7 +219,7 @@ echo "
 ----------------"
 echo "$0 - Checking if logged in as root."
 echo "----------------"
-if ! [ "$(id -u)" = 0 ]
+if ! [ "$(id -u)" == 0 ]
 then
   echo "$0 - You need to be logged in as root!"
   return 2
@@ -226,6 +232,8 @@ echo "----------------
 exec > >(tee -a /root/standup.log) 2> >(tee -a /root/standup.log /root/standup.err >&2)
 
 
+#STARTUP_REGISTER..: $STARTUP_REGISTER
+#SYSTEMD_RELOAD....: $SYSTEMD_RELOAD
 
 echo "
 ---------SETUP---------
@@ -234,8 +242,6 @@ Parameters Passed:
 System
 ------
 NOPROMPT..........: $NOPROMPT
-STARTUP_REGISTER..: $STARTUP_REGISTER
-SYSTEMD_RELOAD....: $SYSTEMD_RELOAD
 VPS...............: $VPS
 USERPASSWORD......: $USERPASSWORD
 
@@ -255,6 +261,7 @@ HWI.......: $HWI
 Lightning:
 ----------
 LIGHTNING..: $LIGHTNING
+LN_ALIAS...: $LN_ALIAS
 
 Services:
 ---------
@@ -272,7 +279,7 @@ SYS_SSH_IP..: $SYS_SSH_IP
 ####
 # 1. Update Hostname and set timezone
 ####
-
+# source vps setup script
 if "$VPS"
 then
   source ./ss_vps.sh
@@ -298,7 +305,6 @@ fi
 ####
 # 2. Update Debian, Set autoupdate and Install Dependencies
 ####
-
 echo "
 ----------------
 "
@@ -306,28 +312,26 @@ echo "$0 - Starting Debian updates; this will take a while!"
 echo "
 ----------------
 "
-
 # Make sure all packages are up-to-date
 apt-get update
 apt-get upgrade -y
 apt-get dist-upgrade -y
 
-
-# call dependency script
+# source dependency script
 source ./ss_dependencies.sh
 
 
 ####
 # 3. Create user admin
 ####
-# call user and ssh script
+# source user and ssh script
 source ./ss_user_ssh.sh
 
 
 ####
 # 4. Install Tor
 ####
-# call tor script
+# source tor script
 source ./ss_tor.sh
 
 # sleep 4 seconds for tor to restart
@@ -336,54 +340,85 @@ sleep 4
 ####
 # 5. Install Bitcoin
 ####
-# call the bitcoin script
-source ./ss_bitcoin.sh
+# source bitcoin script
+BITCOIND_VERSION=$(bitcoind --version | grep "Bitcoin Core version | awk '{print $4}'")
+if [[ -n "$BITCOIND_VERSION" ]]
+then
+  echo ""
+  echo "  ----------"
+  echo "-----$0 - bitcoind is already installed, version: $BITCOIND_VERSION"
+  echo "  ----------"
+  echo ""
+  return 0
+else
+  source ss_bitcoin.sh
+fi
 
+sleep 4
+
+echo "
+
+------------
+
+bitcoind service is: $(systemctl status bitcoind | grep active | awk '{print $2}')
+
+------------
+
+"
 
 ####
 # Lightning
 ####
+# source lightning script
+echo ""
+if [[ "$LIGHTNING" = "c-lightning" ]]
+then
+  echo "------Standup - installing c-lightning"
+  echo ""
+  source ./ss_c-lightning.sh
+else
+  echo "------Standup - installing lnd"
+  echo ""
+  source ./ss_lnd.sh
+fi
 
 
-source ./ss_lightning.sh
 
+# ####
+# # RESET Environment Variables
+# ####
 
+# # system
+# NOPROMPT=false
+# STARTUP_REGISTER=true
+# SYSTEMD_RELOAD=true
+# VPS=false
+# USERPASSWORD=""
 
-####
-# RESET Environment Variables
-####
+# # vps
+# FQDN=""
+# HOSTNAME=""
+# REGION=""
 
-# system
-NOPROMPT=false
-STARTUP_REGISTER=true
-SYSTEMD_RELOAD=true
-VPS=false
-USERPASSWORD=""
+# # bitcoind
+# NETWORK="mainnet"
+# PRUNE=""
+# FASTSYNC=false
+# HWI=true
 
-# vps
-FQDN=""
-HOSTNAME=""
-REGION=""
+# # lightning
+# LIGHTNING="c-lightning"
 
-# bitcoind
-NETWORK="mainnet"
-PRUNE=""
-FASTSYNC=false
-HWI=true
+# # services
+# ESPLORA=false
+# BTCPAYSERVER=false
 
-# lightning
-LIGHTNING="c-lightning"
+# # Tor
+# TOR_PUBKEY=""
 
-# services
-ESPLORA=false
-BTCPAYSERVER=false
-
-# Tor
-TOR_PUBKEY=""
-
-# ssh
-SSH_KEY=""
-SYS_SSH_IP=""
+# # ssh
+# SSH_KEY=""
+# SYS_SSH_IP=""
 
 
 # Finished, exit script

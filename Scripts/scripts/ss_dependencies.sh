@@ -6,11 +6,11 @@
 echo "
 ----------------
 "
-echo "$0 - Installing haveged (a random number generator), gnupg2 & git"
+echo "$0 - Installing haveged (a random number generator), gnupg2, git & make"
 echo "
 ----------------
 "
-apt-get install haveged gnupg2 git -y
+apt-get install haveged gnupg2 git make -y
 echo "
 ----------------$0 - haveged, gnupg2 & git installed successfully
 "

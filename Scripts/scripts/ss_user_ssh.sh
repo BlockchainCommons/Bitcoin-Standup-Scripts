@@ -4,16 +4,18 @@
 
 if [ -z "$(cat /etc/shadow | grep standup)" ] && [ -z "$(groups standup)" ]
 then
-  echo "
-----------------
-  "
+  echo ""
+  echo "----------------"
+  echo ""
   echo "Creating user standup"
-  echo "
-----------------
-  "
-  # Create "standup" user with optional password and give them sudo capability
+  echo ""
+  echo "----------------"
+  echo ""
+  # Create "standup" group & user with optional password and give them sudo capability
+  /usr/sbin/groupadd standup
   /usr/sbin/useradd -m -p `perl -e 'printf("%s\n",crypt($ARGV[0],"password"))' "$USERPASSWORD"` -g sudo -s /bin/bash standup
   /usr/sbin/adduser standup sudo
+  /usr/sbin/adduser standup standup
 
   echo "
 ----------------
