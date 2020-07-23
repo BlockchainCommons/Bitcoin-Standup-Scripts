@@ -60,7 +60,7 @@ do
 key="$1"
   case $key in
     -h|--help)
-      source ./ss_help.sh
+      source ./ss_01_help.sh
       return 3
       ;;
     -y)
@@ -282,7 +282,7 @@ SYS_SSH_IP..: $SYS_SSH_IP
 # source vps setup script
 if "$VPS"
 then
-  source ./ss_vps.sh
+  source ./ss_00.1_vps.sh
 fi
 
 
@@ -318,21 +318,21 @@ apt-get upgrade -y
 apt-get dist-upgrade -y
 
 # source dependency script
-source ./ss_dependencies.sh
+source ./ss_02_dependencies.sh
 
 
 ####
 # 3. Create user admin
 ####
 # source user and ssh script
-source ./ss_user_ssh.sh
+source ./ss_03_user_ssh.sh
 
 
 ####
 # 4. Install Tor
 ####
 # source tor script
-source ./ss_tor.sh
+source ./ss_04_tor.sh
 
 # sleep 4 seconds for tor to restart
 sleep 4
@@ -351,7 +351,7 @@ then
   echo ""
   return 0
 else
-  source ss_bitcoin.sh
+  source ./ss_05_bitcoin.sh
 fi
 
 sleep 4
@@ -375,14 +375,14 @@ if [[ "$LIGHTNING" = "c-lightning" ]]
 then
   echo "------Standup - installing c-lightning"
   echo ""
-  source ./ss_c-lightning.sh
+  source ./ss_06_c-lightning.sh
 else
   echo "------Standup - installing lnd"
   echo ""
-  source ./ss_lnd.sh
+  source ./ss_06_lnd.sh
 fi
 
-
+su standup
 
 # ####
 # # RESET Environment Variables

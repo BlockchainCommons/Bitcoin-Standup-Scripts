@@ -72,15 +72,10 @@ echo "
 sudo cp $GOPATH/bin/lnd $GOPATH/bin/lncli /usr/bin
 
 # create symbolic link to bitcoin config
-ln -s /etc/bitcoin/bitcoin.conf ~/.bitcoin/bitcoin.conf
+ln -s /etc/bitcoin/bitcoin.conf ~standup/.bitcoin/bitcoin.conf
 
-# create necessary directories
+# create config necessary directories
 mkdir -p /etc/lnd
-mkdir -p /var/lib/lnd
-mkdir -p ~standup/.lnd
-chown standup:standup -R /var/lib/lnd
-# chown standup:root -R /etc/lnd
-
 
 BTC_NETWORK=""
 if [[ "$NETWORK" = "mainnet" ]]
@@ -127,13 +122,11 @@ tor.active=true
 tor.v3=true
 EOF
 
-# set appropriate permissions
+# set directories & appropriate permissions
+mkdir -p /var/lib/lnd
+chown standup:root -R /var/lib/lnd
+chown standup:root -R /etc/lnd
 chmod 644 /etc/lnd/lnd.conf
-# cp /etc/lnd/lnd.conf ~standup/.lnd/
-# chown standup:root ~standup/.lnd/lnd.conf
-
-ln -s /var/lib/lnd ~/standup/.lnd
-
 
 # create systemd service
 cat > /etc/systemd/system/lnd.service << EOF
@@ -170,6 +163,8 @@ RestartSec=60
 WantedBy=multi-user.target
 EOF
 
+ln -s /var/lib/lnd ~standup/.lnd
+
 
 # [Unit]
 # Description=LND Lightning Daemon
@@ -204,38 +199,38 @@ sudo systemctl start lnd
 echo "
 -------$0 - Checking if LND is running
 "
-waiting=6
-while [[ $(systemctl is-active lnd) != "active" ]] && [[ "$waiting" -gt 0 ]]
-do
+# waiting=3
+# while [[ $(systemctl is-active lnd) != "active" ]] && [[ "$waiting" -gt 0 ]]
+# do
+# echo "waiting..."
 sleep 10
-echo "waiting..."
-"$waiting"="$waiting" - 1
-  if [[ $(systemctl status lnd | grep active | awk '{print $2}') = "active" ]]
+# "$waiting"="$waiting" - 1
+if [[ $(systemctl status lnd | grep active | awk '{print $2}') = "active" ]]; then
+  echo "
+  --------$0 - LND service now is active.
+  "
+  echo "
+  -------$0 - chekcing LND and Tor..
+  "
+  LND_TOR_ADDRESS=$(lncli getinfo | grep onion)
+  if [[ -n "$LND_TOR_ADDRESS" ]]
   then
-    echo "
-    --------$0 - LND service now is active.
-    "
-    echo "
-    -------$0 - chekcing LND and Tor..
-    "
-    LND_TOR_ADDRESS=$(lncli getinfo | grep onion)
-    if [[ -n "$LND_TOR_ADDRESS" ]]
-    then
-      echo "--------$0 - Your LND Tor address is:
+    echo "--------$0 - Your LND Tor address is:
 
-      $LND_TOR_ADDRESS
-      "
-    fi
-    echo "LND is fully active and working with Tor.
-    To create a wallet do (without the $) :
-    $ lncli create
-    "
-  else
-    echo "
-    -------$0 - LND not yet active. Check manually using (without the $) :
-
-    $ sudo systemctl status lnd
+    $LND_TOR_ADDRESS
     "
   fi
-break
-done
+  echo "LND is fully active and working with Tor.
+  To create a wallet do (without the $) :
+  $ lncli create
+  "
+  exit 0
+else
+  echo "
+  -------$0 - LND not yet active. Check manually using (without the $) :
+
+  $ sudo systemctl status lnd
+  "
+fi
+# break
+# done

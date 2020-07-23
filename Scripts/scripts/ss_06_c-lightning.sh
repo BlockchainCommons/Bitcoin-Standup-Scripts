@@ -3,7 +3,7 @@
 # standup script - install c-lightning
 
 export CLN_VERSION="v0.8.2.1"
-export CLN_DIR="~standup/clightning"
+export LIGHTNING_DIR="~standup/.lightning"
 
 echo "
 -----------
@@ -13,8 +13,8 @@ Installing dependencies
 
 apt-get install -y \
 autoconf automake build-essential git libtool libgmp-dev \
-libsqlite3-dev python3 python3-mako net-tools zlib1g-dev libsodium-dev \
-gettext valgrind python3-pip libpq-dev
+libsqlite3-dev python3 python3-mako net-tools zlib1g-dev \
+libsodium-dev gettext valgrind python3-pip libpq-dev
 
 echo "
 -----------
@@ -22,29 +22,31 @@ Downloading & Installing c-lightning
 -----------
 "
 # get & compile clightning from github
-cd /tmp
 sudo -u standup git clone https://github.com/ElementsProject/lightning.git ~standup/lightning
 cd ~standup/lightning
-pyhton3 -m pip install -r requirements.txt
+git checkout $CLN_VERSION
+python3 -m pip install -r requirements.txt
 ./configure
-make
+make -j$(nproc --ignore=1) --quiet
 sudo make install
 
 # lightningd config
-mkdir -m 760 ~standup/.lightning
-cat >> ~standup/.lightning/config << EOF
-network=$NETWORK
+mkdir -m 760 "$LIGHTNING_DIR"
+chown standup -R "$LIGHTNING_DIR"
+cat >> "$LIGHTNING_DIR"/config << EOF
+alias=StandUp
+log-level=debug
+log-prefix=standup
 proxy=127.0.0.1:9050
 bind-addr=127.0.0.1:9735
 addr=statictor:127.0.0.1:9051
 always-use-proxy=true
 EOF
 
-/bin/chown standup ~standup/.lightning/config
-/bin/chmod 640 ~standup/.lightning/config
+/bin/chmod 640 "$LIGHTNING_DIR"/config
 
 echo "
--------$0 - Setting up Bitcoin as a systemd service.
+-------$0 - Setting up c-lightning as a systemd service.
 "
 
 cat > /etc/systemd/system/lightningd.service << EOF
