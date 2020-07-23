@@ -102,6 +102,7 @@ if [ $(systemctl status lightningd | grep active | awk '{print $2}') = "active" 
 then
   echo "
   -----------$0 - c-lightning Installed and started
+  Wait for the bitcoind to fully sync with the blockchain and then interact with lightningd.
   "
 else
   echo "

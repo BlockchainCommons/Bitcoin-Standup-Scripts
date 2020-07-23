@@ -382,8 +382,6 @@ else
   source ./ss_06_lnd.sh
 fi
 
-su standup
-
 # ####
 # # RESET Environment Variables
 # ####
