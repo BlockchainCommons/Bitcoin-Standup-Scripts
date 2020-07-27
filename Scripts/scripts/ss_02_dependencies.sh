@@ -5,38 +5,30 @@
 # Install haveged (a random number generator)
 echo "
 ----------------
-"
-echo "$0 - Installing haveged (a random number generator), gnupg2, git & make"
-echo "
+  $MESSAGE_PREFIX Installing haveged (a random number generator), gnupg2, git & make
 ----------------
 "
 apt-get install haveged gnupg2 git make -y
 echo "
-----------------$0 - haveged, gnupg2 & git installed successfully
+$MESSAGE_PREFIX haveged, gnupg2 & git installed successfully
 "
 
 # Set system to automatically update
 echo "
 ----------------
-"
-echo "$0 - setting system to automatically update"
-echo "
+$MESSAGE_PREFIX setting system to automatically update
 ----------------
 "
 echo "unattended-upgrades unattended-upgrades/enable_auto_updates boolean true" | debconf-set-selections
 apt-get -y install unattended-upgrades
 echo "
-----------------$0 - Debian Packages updated
+$MESSAGE_PREFIX Debian Packages updated
 "
 # Get uncomplicated firewall and deny all incoming connections except SSH
 if [ -z "$(which ufw)" ]
 then
   echo "
-----------------
-  "
-  echo "$0 - Installing ufw"
-  echo "
-----------------
+$MESSAGE_PREFIX Installing ufw
   "
   apt-get install ufw
 fi
@@ -45,5 +37,5 @@ ufw allow ssh
 ufw --force enable
 
 echo "
-----------------$0 - ufw is installed and enabled.
+$MESSAGE_PREFIX ufw is installed and enabled.
 "

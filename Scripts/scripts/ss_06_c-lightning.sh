@@ -2,13 +2,17 @@
 
 # standup script - install c-lightning
 
+echo "
+----------------
+  $MESSAGE_PREFIX installing c-lightning
+----------------
+"
+
 export CLN_VERSION="v0.8.2.1"
 export LIGHTNING_DIR="~standup/.lightning"
 
 echo "
------------
-Installing dependencies
------------
+$MESSAGE_PREFIX installing dependencies
 "
 
 apt-get install -y \
@@ -17,9 +21,7 @@ libsqlite3-dev python3 python3-mako net-tools zlib1g-dev \
 libsodium-dev gettext valgrind python3-pip libpq-dev
 
 echo "
------------
-Downloading & Installing c-lightning
------------
+$MESSAGE_PREFIX downloading & Installing c-lightning
 "
 # get & compile clightning from github
 sudo -u standup git clone https://github.com/ElementsProject/lightning.git ~standup/lightning
@@ -29,6 +31,9 @@ python3 -m pip install -r requirements.txt
 ./configure
 make -j$(nproc --ignore=1) --quiet
 sudo make install
+
+# get back to script directory
+cd -
 
 # lightningd config
 mkdir -m 760 "$LIGHTNING_DIR"
@@ -45,8 +50,13 @@ EOF
 
 /bin/chmod 640 "$LIGHTNING_DIR"/config
 
+# add tor configuration to torrc
+sed -i -e 's/HiddenServicePort 1309 127.0.0.1:8332/HiddenServicePort 1309 127.0.0.1:8332\
+HiddenServiceDir \/var\/lib\/tor\/lightningd-service_v3\/\
+HiddenServicePort 1234 127.0.0.1:9735/g' /etc/tor/torrc
+
 echo "
--------$0 - Setting up c-lightning as a systemd service.
+$MESSAGE_PREFIX Setting up c-lightning as a systemd service.
 "
 
 cat > /etc/systemd/system/lightningd.service << EOF
@@ -101,11 +111,11 @@ sudo systemctl start lightningd.service
 if [ $(systemctl status lightningd | grep active | awk '{print $2}') = "active" ]
 then
   echo "
-  -----------$0 - c-lightning Installed and started
+  $MESSAGE_PREFIX c-lightning Installed and started
   Wait for the bitcoind to fully sync with the blockchain and then interact with lightningd.
   "
 else
   echo "
-  --------$0 - c-lightning not yet active.
+  $MESSAGE_PREFIX c-lightning not yet active.
   "
 fi

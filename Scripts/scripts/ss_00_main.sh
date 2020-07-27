@@ -3,7 +3,6 @@
 # standup.sh
 
 # TODO: Get opinion on `` vs $() as backticks are portable to legacy shells
-# TODO: Sort c-lightning & lnd installation
 
 set +ex
 
@@ -12,6 +11,8 @@ if [[ "$0" = "$BASH_SOURCE" ]]; then
     echo "This script must be sourced like so: \"source standup.sh\""
     return 1
 fi
+
+MESSAGE_PREFIX="-------Standup -"
 
 ####
 # Environment Variables
@@ -41,22 +42,21 @@ LN_ALIAS="StandUp"
 ESPLORA=false
 BTCPAYSERVER=false
 
-# Tor
+# Tor & SSH
 TOR_PUBKEY=""
-
-# ssh
 SSH_KEY=""
 SYS_SSH_IP=""
 
-
+# btcpay server
+BTCPAY_HOST=""
+BTCPAY_LN="c-lightning"
 
 ####
 # Parsing Arguments
 ####
 PARAMS=""
 
-while (( "$#" ))
-do
+while (( "$#" )); do
 key="$1"
   case $key in
     -h|--help)
@@ -92,17 +92,14 @@ key="$1"
       shift 1
       ;;
     -n|--network)
-      if [ "${2:0:1}" = "-" ]
-      then
+      if [ "${2:0:1}" = "-" ]; then
         echo "Network flag passed without value. Installing default network: mainnet."
       shift 1
-      elif [[ -n "$2" ]] && [[ "$2" = "mainnet" ]] || [[ "$2" = "testnet" ]] || [[ "$2" = "regtest" ]]
-      then
+      elif [[ -n "$2" ]] && [[ "$2" = "mainnet" ]] || [[ "$2" = "testnet" ]] || [[ "$2" = "regtest" ]]; then
         NETWORK="$2"
       else
         echo "ERROR: Network has to be either mainnet, testnet or regtest. Passed $2"
-        while [[ "$NETWROK" != "mainnet" ]] || [[ "$NETWROK" != "testnet" ]] || [[ "$NETWROK" != "regtest" ]]
-        do
+        while [[ "$NETWROK" != "mainnet" ]] || [[ "$NETWROK" != "testnet" ]] || [[ "$NETWROK" != "regtest" ]]; do
           read -pr "Enter which network do you want to default to: " NETWORK
         done
       fi
@@ -110,17 +107,14 @@ key="$1"
       shift 1
       ;;
     -p|--prune)
-      if [ "${2:0:1}" = "-" ]
-      then
+      if [ "${2:0:1}" = "-" ]; then
         echo "Prune flag passed without value. Installing default: unpruned node."
       shift 1
-      elif [[ -n "$2" ]] && [[ "$2" -ge 550 ]]
-      then
+      elif [[ -n "$2" ]] && [[ "$2" -ge 550 ]]; then
         PRUNE="$2"
       else
         echo "ERROR: Minimum prune value is 550. Passed $2"
-        # while [[ "$PRUNE" -lt 550 ]]
-        # do
+        # while [[ "$PRUNE" -lt 550 ]]; do
         #   read -pr "Enter a value above 550 or 0 if you want to install an unpruned node (you can change this later): " PRUNE
         # done
         return 1
@@ -141,24 +135,13 @@ key="$1"
       shift 1
       ;;
     -l|--lightning)
-      if [ "${2:0:1}" = "-" ]
-      then
+      if [ "${2:0:1}" = "-" ]; then
         echo "Lightning flag passed without specifying the implementation. Installing default implementation: c-lightning"
       shift 1
-      elif [[ -n "$2" ]] && [[ "$2" = "c-lightning" ]] || [[ "$2" = "lnd" ]]
-      then
+      elif [[ -n "$2" ]] && [[ "$2" = "c-lightning" ]] || [[ "$2" = "lnd" ]]; then
         LIGHTNING="$2"
       else
-        if [[ -z "$2" ]]
-        then
-          echo "ERROR: You provided the flag -l or --lightning but didn't provide the implementation. Please enter c-lightning or lnd."
-        else
-        echo "ERROR: Invalid lightning implementation. Pass c-lightning or lnd. Passed $2."
-        fi
-        # while [[ "$LIGHTNING" != "c-lightning" ]] || [[ "$LIGHTNING" != "lnd" ]]
-        # do
-        #   read -pr "Enter c-lightning or lnd implementations or false if you don't want to install lightning: " LIGHTNING
-        # done
+        echo "ERROR: Invalid lightning implementation. Pass 'c-lightning' or 'lnd'. Passed $2."
         return 1
       fi
       shift 1
@@ -169,14 +152,6 @@ key="$1"
       shift 1
       shift 1
       ;;
-    --esplora)
-      ESPLORA=true
-    shift 1
-    ;;
-    --btcpay)
-      BTCPAYSERVER=true
-    shift 1
-    ;;
     -t|--tor-pubkey)
       TOR_PUBKEY="$2"
       shift 1
@@ -188,10 +163,28 @@ key="$1"
       shift 1
       ;;
     --sys-ssh-ip)
-    SYS_SSH_IP="$2"
-    shift 1
-    shift 1
-    ;;
+      SYS_SSH_IP="$2"
+      shift 1
+      shift 1
+      ;;
+    --esplora)
+      ESPLORA=true
+      shift 1
+      ;;
+    --btcpay)
+      BTCPAYSERVER=true
+      shift 1
+      ;;
+    --btcpay-host)
+      BTCPAY_HOST="$2"
+      shift 1
+      shift 1
+      ;;
+    --btcpay-ln)
+      BTCPAY_LN="$2"
+      shift 1
+      shift 1
+      ;;
     --) # end argument parsing
       shift 1
       break
@@ -217,16 +210,15 @@ set -- "$PARAMS"  # set positional parameters in order
 # if you are not logged in as root then the script will not execute
 echo "
 ----------------"
-echo "$0 - Checking if logged in as root."
+echo "$MESSAGE_PREFIX Checking if logged in as root."
 echo "----------------"
-if ! [ "$(id -u)" == 0 ]
-then
-  echo "$0 - You need to be logged in as root!"
+if ! [ "$(id -u)" == 0 ]; then
+  echo "$MESSAGE_PREFIX You need to be logged in as root!"
   return 2
 fi
 
-echo "$0 - Logged in as root. Continuing with installation."
-echo "----------------
+echo "$MESSAGE_PREFIX Logged in as root. Continuing with installation.
+----------------
 "
 # Output stdout and stderr to ~root files
 exec > >(tee -a /root/standup.log) 2> >(tee -a /root/standup.log /root/standup.err >&2)
@@ -241,38 +233,43 @@ Parameters Passed:
 
 System
 ------
-NOPROMPT..........: $NOPROMPT
-VPS...............: $VPS
-USERPASSWORD......: $USERPASSWORD
+NOPROMPT......: $NOPROMPT
+VPS...........: $VPS
+USERPASSWORD..: $USERPASSWORD
 
 VPS
 ---
-FQDN......: $FQDN
-HOSTNAME..: $HOSTNAME
-REGION....: $REGION
+FQDN..........: $FQDN
+HOSTNAME......: $HOSTNAME
+REGION........: $REGION
 
-Bitcoin:
+Bitcoin
 --------
-NETWORK...: $NETWORK
-PRUNE.....: $PRUNE
-FASTSYNC..: $FASTSYNC
-HWI.......: $HWI
+NETWORK.......: $NETWORK
+PRUNE.........: $PRUNE
+FASTSYNC......: $FASTSYNC
+HWI...........: $HWI
 
-Lightning:
+Lightning
 ----------
-LIGHTNING..: $LIGHTNING
-LN_ALIAS...: $LN_ALIAS
+LIGHTNING.....: $LIGHTNING
+LN_ALIAS......: $LN_ALIAS
 
-Services:
+Services
 ---------
 ESPLORA.......: $ESPLORA
 BTCPAYSERVER..: $BTCPAYSERVER
 
-Tor & SSH:
+Tor & SSH
 ----------
-TOR_PUBKEY..: $TOR_PUBKEY
-SSH_KEY.....: $SSH_KEY
-SYS_SSH_IP..: $SYS_SSH_IP
+TOR_PUBKEY....: $TOR_PUBKEY
+SSH_KEY.......: $SSH_KEY
+SYS_SSH_IP....: $SYS_SSH_IP
+
+BTCPAY Server
+-------------
+BTCPAY_HOST...: $BTCPAY_HOST
+BTCPAY_LN.....: $BTCPAY_LN
 "
 
 
@@ -280,20 +277,17 @@ SYS_SSH_IP..: $SYS_SSH_IP
 # 1. Update Hostname and set timezone
 ####
 # source vps setup script
-if "$VPS"
-then
+if "$VPS"; then
   source ./ss_00.1_vps.sh
 fi
 
 
 # prompt user before continuing with installation
-if ! "$NOPROMPT"
-then
+if ! "$NOPROMPT"; then
   read -rp  "Continue with installation? (Y/n): " confirm
 fi
 
-if [[ "$confirm" != [yY] ]]
-then
+if [[ "$confirm" != [yY] ]]; then
   echo "Entered $confirm. Exiting.."
   return 8
 else
@@ -307,11 +301,10 @@ fi
 ####
 echo "
 ----------------
-"
-echo "$0 - Starting Debian updates; this will take a while!"
-echo "
+$MESSAGE_PREFIX Starting Debian updates; this will take a while!
 ----------------
 "
+
 # Make sure all packages are up-to-date
 apt-get update
 apt-get upgrade -y
@@ -342,13 +335,12 @@ sleep 4
 ####
 # source bitcoin script
 BITCOIND_VERSION=$(bitcoind --version | grep "Bitcoin Core version | awk '{print $4}'")
-if [[ -n "$BITCOIND_VERSION" ]]
-then
-  echo ""
-  echo "  ----------"
-  echo "-----$0 - bitcoind is already installed, version: $BITCOIND_VERSION"
-  echo "  ----------"
-  echo ""
+if [[ -n "$BITCOIND_VERSION" ]]; then
+  echo "
+  ----------------
+  $MESSAGE_PREFIX bitcoind is already installed, version: $BITCOIND_VERSION
+  ----------------
+  "
   return 0
 else
   source ./ss_05_bitcoin.sh
@@ -358,28 +350,30 @@ sleep 4
 
 echo "
 
-------------
+----------------
 
-bitcoind service is: $(systemctl status bitcoind | grep active | awk '{print $2}')
+  $MESSAGE_PREFIX bitcoind service is: $(systemctl status bitcoind | grep active | awk '{print $2}')
 
-------------
-
+----------------
 "
 
 ####
 # Lightning
 ####
 # source lightning script
-echo ""
-if [[ "$LIGHTNING" = "c-lightning" ]]
-then
-  echo "------Standup - installing c-lightning"
-  echo ""
+if [[ "$LIGHTNING" = "c-lightning" ]]; then
   source ./ss_06_c-lightning.sh
 else
-  echo "------Standup - installing lnd"
-  echo ""
   source ./ss_06_lnd.sh
+fi
+
+
+####
+# BTCPay Server
+####
+# source btcpay script
+if "$BTCPAYSERVER"; then
+  source ./ss_07_btcpayserver.sh
 fi
 
 # ####

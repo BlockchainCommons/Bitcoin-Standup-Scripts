@@ -4,13 +4,11 @@
 
 if [ -z "$(cat /etc/shadow | grep standup)" ] && [ -z "$(groups standup)" ]
 then
-  echo ""
-  echo "----------------"
-  echo ""
-  echo "Creating user standup"
-  echo ""
-  echo "----------------"
-  echo ""
+  echo "
+----------------
+  $MESSAGE_PREFIX Creating user standup
+----------------
+  "
   # Create "standup" group & user with optional password and give them sudo capability
   /usr/sbin/groupadd standup
   /usr/sbin/useradd -m -p `perl -e 'printf("%s\n",crypt($ARGV[0],"password"))' "$USERPASSWORD"` -g sudo -s /bin/bash standup
@@ -18,16 +16,12 @@ then
   /usr/sbin/adduser standup standup
 
   echo "
-----------------
-  "
-  echo "$0 - User standup created with sudo access."
-  echo "
-----------------
+  $MESSAGE_PREFIX User standup created with sudo access.
   "
 else
-  echo "----------------"
-  echo "User standup already exists."
-  echo "----------------"
+  echo "----------------
+  $MESSAGE_PREFIX User standup already exists.
+  ----------------"
 fi
 
 # Setup SSH Key if the user added one as an argument
@@ -38,9 +32,7 @@ then
   chown -R standup ~standup/.ssh
   echo "
 ----------------
-  "
-  echo "$0 - Added .ssh key to standup."
-  echo "
+$MESSAGE_PREFIX Added .ssh key to standup.
 ----------------
   "
 fi
@@ -52,17 +44,13 @@ then
   echo "sshd: ALL" >> /etc/hosts.deny
   echo "
 ----------------
-  "
-  echo "$0 - Limited SSH access."
-  echo "
+$MESSAGE_PREFIX Limited SSH access.
 ----------------
   "
 else
   echo "
   ****************
-  "
-  echo "$0 - WARNING: Your SSH access is not limited; this is a major security hole!"
-  echo "
+  $MESSAGE_PREFIX WARNING: Your SSH access is not limited; this is a major security hole!
   ****************
   "
 fi

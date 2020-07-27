@@ -9,9 +9,7 @@
 # Download tor
 echo "
 ----------------
-"
-echo "Installing Tor"
-echo "
+  $MESSAGE_PREFIX Installing Tor
 ----------------
 "
 #  To use source lines with https:// in /etc/apt/sources.list the apt-transport-https package is required. Install it with:
@@ -19,7 +17,7 @@ if [ -z "$(which apt-transport-https)" ]
 then
   apt-get install apt-transport-https -y
   echo "
-  --------------apt-transport-https installed
+  $MESSAGE_PREFIX apt-transport-https installed
   "
 fi
 
@@ -28,7 +26,7 @@ if [ -z "$(which torsocks)" ]
 then
   apt-get install torsocks -y
   echo "
-  --------------torsocks installed
+  $MESSAGE_PREFIX torsocks installed
   "
 fi
 
@@ -61,10 +59,8 @@ HiddenServiceDir \/var\/lib\/tor\/standup\/\
 HiddenServiceVersion 3\
 HiddenServicePort 1309 127.0.0.1:18332\
 HiddenServicePort 1309 127.0.0.1:18443\
-HiddenServicePort 1309 127.0.0.1:8332\
-HiddenServiceDir /var/lib/tor/lightningd-service_v2/
-HiddenServiceVersion 3\
-HiddenServicePort 1234 127.0.0.1:9735/g' /etc/tor/torrc
+HiddenServicePort 1309 127.0.0.1:8332/g' /etc/tor/torrc
+
 mkdir /var/lib/tor/standup
 chown -R debian-tor:debian-tor /var/lib/tor/standup
 chmod 700 /var/lib/tor/standup
@@ -79,7 +75,7 @@ sudo systemctl restart tor.service
 if [ "$(systemctl is-active tor) | grep active" ]
 then
 echo "
---------------$0 - Tor installed and successfully started
+$MESSAGE_PREFIX Tor installed and successfully started
 "
 fi
 
@@ -102,11 +98,11 @@ then
   sudo systemctl restart tor.service
 
   echo "
-  ---------$0 - Successfully added Tor V3 authentication
+  $MESSAGE_PREFIX Successfully added Tor V3 authentication
   "
 
 else
   echo "
-  ---------$0 - No Tor V3 authentication, anyone who gets access to your QR code can have full access to your node, ensure you do not store more then you are willing to lose and better yet use the node as a watch-only wallet
+  $MESSAGE_PREFIX No Tor V3 authentication, anyone who gets access to your QR code can have full access to your node, ensure you do not store more then you are willing to lose and better yet use the node as a watch-only wallet
   "
 fi

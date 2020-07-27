@@ -6,11 +6,11 @@
 # 5. Install Bitcoin
 ####
 
-echo ""
-echo "----------------"
-echo "Installing Bitcoin"
-echo "----------------"
-echo ""
+echo "
+----------------
+  $MESSAGE_PREFIX Installing Bitcoin
+----------------
+"
 # Download Bitcoin
 
 # CURRENT BITCOIN RELEASE:
@@ -28,19 +28,19 @@ export BITCOINPLAIN=`echo $BITCOIN | sed 's/bitcoin-core/bitcoin/'`
 # OR alternatively uncomment the clearnet links to download bitcoin over clearnet.
 if ! [[ -f ~standup/"$BITCOINPLAIN"-x86_64-linux-gnu.tar.gz ]]
 then
-  echo ""
-  echo "-----------"
-  echo "Downloading $BITCOIN, this will take a while!"
-  echo "-----------"
-  echo ""
+  echo "
+----------------
+$MESSAGE_PREFIX Downloading $BITCOIN, this will take a while!
+----------------
+  "
 sudo -u standup torsocks wget --progress=bar:force http://6hasakffvppilxgehrswmffqurlcjjjhd76jgvaqmsg6ul25s7t3rzyd.onion/bin/"$BITCOIN"/"$BITCOINPLAIN"-x86_64-linux-gnu.tar.gz -O ~standup/"$BITCOINPLAIN"-x86_64-linux-gnu.tar.gz
 fi
 
 if [[ -f ~standup/"$BITCOINPLAIN"-x86_64-linux-gnu.tar.gz ]] && ! [[ -f ~standup/SHA256SUMS.asc ]]
 then
-  echo "--------------StandUp - $BITCOINPLAIN-x86_64-linux-gnu.tar.gz exists at /home/standup/"
+  echo "$MESSAGE_PREFIX $BITCOINPLAIN-x86_64-linux-gnu.tar.gz exists at /home/standup/"
   echo ""
-  echo "----StandUp - downloading SHA256SUMS.asc for $BITCOIN"
+  echo "$MESSAGE_PREFIX downloading SHA256SUMS.asc for $BITCOIN"
   echo ""
 sudo -u standup torsocks wget http://6hasakffvppilxgehrswmffqurlcjjjhd76jgvaqmsg6ul25s7t3rzyd.onion/bin/"$BITCOIN"/SHA256SUMS.asc -O ~standup/SHA256SUMS.asc
 else
@@ -49,36 +49,36 @@ fi
 
 if [[ -f ~standup/SHA256SUMS.asc ]]
 then
-  echo "----------StandUp - SHA256SSUMS.asc exists at /home/standup/"
+  echo "$MESSAGE_PREFIX SHA256SSUMS.asc exists at /home/standup/"
 fi
 
 if ! [[ -f ~standup/laanwj-releases.asc ]]
 then
-  echo "-----StandUp - downloading laanwj-release signature"
+  echo "$MESSAGE_PREFIX downloading laanwj-release signature"
 sudo -u standup wget https://bitcoin.org/laanwj-releases.asc -O ~standup/laanwj-releases.asc
 fi
 
 # Verifying Bitcoin: Signature
-echo ""
-echo "-----------------"
-echo "StandUp - Verifying Bitcoin."
-echo "-----------------"
-echo ""
+echo "
+-----------------
+$MESSAGE_PREFIX Verifying Bitcoin.
+-----------------
+"
 
 sudo -u standup /usr/bin/gpg --no-tty --import ~standup/laanwj-releases.asc
 export BTC_SHASIG=`sudo -u standup /usr/bin/gpg --no-tty --verify ~standup/SHA256SUMS.asc 2>&1 | grep "Good signature"`
-echo ""
-echo "---------BTC_SHASIG is $BTC_SHASIG"
-echo ""
+echo "
+$MESSAGE_PREFIX BTC_SHASIG is $BTC_SHASIG
+"
 
 if [[ $BTC_SHASIG ]]
 then
-  echo ""
-  echo "------StandUp - VERIFICATION SUCCESS / SIG: $BTC_SHASIG"
-  echo ""
+  echo "
+  $MESSAGE_PREFIX VERIFICATION SUCCESS / SIG: $BTC_SHASIG
+  "
 else
   (>&2 echo "
-  ------------StandUp - VERIFICATION ERROR: Signature for Bitcoin did not verify!
+  $MESSAGE_PREFIX VERIFICATION ERROR: Signature for Bitcoin did not verify!
   ")
   return 101
 fi
@@ -89,32 +89,31 @@ export BTC_EXPECTEDSHA256=`cat ~standup/SHA256SUMS.asc | grep "$BITCOINPLAIN"-x8
 
 if [[ "$BTC_TARSHA256" = "$BTC_EXPECTEDSHA256" ]]
 then
-  echo ""
-  echo "------StandUp - VERIFICATION SUCCESS / SHA: $BTC_TARSHA256"
-  echo ""
+  echo "
+  $MESSAGE_PREFIX VERIFICATION SUCCESS / SHA: $BTC_TARSHA256
+  "
 else
   (>&2 echo "
-  -----------StandUp - VERIFICATION ERROR: SHA for Bitcoin did not match!
+  $MESSAGE_PREFIX VERIFICATION ERROR: SHA for Bitcoin did not match!
   ")
   return 102
 fi
 
 # Install Bitcoin
-echo "--------------"
-echo ""
-echo "StandUp - Installing Bitcoin."
-echo ""
-echo "--------------"
-echo ""
+echo "
+----------------
+$MESSAGE_PREFIX Installing Bitcoin.
+----------------
+"
 
 sudo -u standup /bin/tar xzf ~standup/"$BITCOINPLAIN"-x86_64-linux-gnu.tar.gz -C ~standup
 /usr/bin/install -m 0755 -o root -g root -t /usr/local/bin ~standup/"$BITCOINPLAIN"/bin/*
 /bin/rm -rf ~standup/"$BITCOINPLAIN"/
 
 # Start Up Bitcoin
-echo ""
-echo "------StandUp - Configuring Bitcoin."
-echo ""
+echo "
+$MESSAGE_PREFIX Configuring Bitcoin.
+"
 
 sudo -u standup /bin/mkdir ~standup/.bitcoin
 
@@ -169,9 +168,9 @@ EOF
 /bin/chmod 600 ~standup/.bitcoin/bitcoin.conf
 
 # Setup bitcoind as a service that requires Tor
-echo ""
-echo "-------StandUp - Setting up Bitcoin as a systemd service."
-echo ""
+echo "
+$MESSAGE_PREFIX Setting up Bitcoin as a systemd service.
+"
 
 sudo cat > /etc/systemd/system/bitcoind.service << EOF
 # It is not recommended to modify this file in-place, because it will
@@ -224,9 +223,9 @@ MemoryDenyWriteExecute=true
 WantedBy=multi-user.target
 EOF
 
-echo ""
-echo "-------StandUp - Starting bitcoind service"
-echo ""
+echo "
+$MESSAGE_PREFIX Starting bitcoind service
+"
 
 sudo systemctl enable bitcoind.service
 sudo systemctl start bitcoind.service
@@ -243,18 +242,18 @@ then
   QR="btcstandup://StandUp:"$RPCPASSWORD"@"$HS_HOSTNAME":1309/?label=StandUp.sh"
 
   # Display the uri text incase QR code does not work
-  echo "StandUp - **************************************************************************************************************"
+  echo "***********************************************************************************************************************"
   echo "StandUp - This is your btcstandup:// uri to convert into a QR which can be scanned with FullyNoded to connect remotely:"
   echo "$QR"
-  echo "StandUp - **************************************************************************************************************"
+  echo "***********************************************************************************************************************"
   echo ""
-  echo "StandUp - Bitcoin is setup as a service and will automatically start if your VPS reboots and so is Tor"
-  echo ""
-  echo ""
-  echo "StandUp - You can manually stop Bitcoin with: sudo systemctl stop bitcoind.service"
+  echo "$MESSAGE_PREFIX Bitcoin is setup as a service and will automatically start if your VPS reboots and so is Tor"
   echo ""
   echo ""
-  echo "StandUp - You can manually start Bitcoin with: sudo systemctl start bitcoind.service"
+  echo "$MESSAGE_PREFIX You can manually stop Bitcoin with: sudo systemctl stop bitcoind.service"
+  echo ""
+  echo ""
+  echo "$MESSAGE_PREFIX You can manually start Bitcoin with: sudo systemctl start bitcoind.service"
   echo ""
 else
   echo ""

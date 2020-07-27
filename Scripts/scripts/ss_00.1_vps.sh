@@ -45,7 +45,7 @@ IPADDR=$(/sbin/ifconfig eth0 | awk '/inet / { print $2 }' | sed 's/addr://')
 echo "$0 - Set hostname as $FQDN ($IPADDR)"
 echo "
   ***********************"
-    $0 - TODO: Put $FQDN with IP $IPADDR in your main DNS file."
+    $MESSAGE_PREFIX TODO: Put $FQDN with IP $IPADDR in your main DNS file."
   ***********************
 "
 echo "$0 - Set Time Zone to $REGION"
@@ -53,7 +53,7 @@ echo $REGION > /etc/timezone
 cp /usr/share/zoneinfo/${REGION} /etc/localtime
 
 echo "
-  -------$0 - Hostname, IP address and timezon are set. Put $FQDN with IP $IPADDR in your main DNS file.
+  $MESSAGE_PREFIX Hostname, IP address and timezon are set. Put $FQDN with IP $IPADDR in your main DNS file.
   "
 # Add localhost aliases
 

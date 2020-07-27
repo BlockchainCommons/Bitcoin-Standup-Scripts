@@ -2,7 +2,11 @@
 
 # standup script - install lnd
 
-# check if bitcoind is running
+echo "
+----------------
+  $MESSAGE_PREFIX installing LND
+----------------
+"
 
 # install Go
 GO_VERSION="go1.14.4"
@@ -26,12 +30,12 @@ GOTARSHA=$(sudo -u standup /usr/bin/sha256sum ~standup/"$GO_VERSION"."$OS"-"$ARC
 if [[ "$GOTARSHA" != "$GOSHA" ]]
 then
   echo "
-  ---------$0 - Go checksum validation failed. Exiting.
+  $MESSAGE_PREFIX Go checksum validation failed. Exiting.
   "
   return 201
 else
   echo "
-  --------$0 - Go checksum validated. Continuing with installing LND.
+  $MESSAGE_PREFIX Go checksum validated. Continuing with installing LND.
   "
 fi
 
@@ -46,36 +50,38 @@ export GOPATH=~standup/gocode
 if [[ $(go version | awk '{print $3}') = "$GO_VERSION" ]]
 then
   echo "
-  ----------$0 - $GO_VERSION successfully installed
+$MESSAGE_PREFIX $GO_VERSION successfully installed
   "
 else
   echo "
-  ----------$0 - Go not installed, cannot install lnd
+$MESSAGE_PREFIX Go not installed, cannot install lnd
   "
   return 202
 fi
 
 # build lnd
 echo "
---------$0 - getting lnd... this will take a while!
+$MESSAGE_PREFIX getting lnd... depending on your network it can take more than an hour. With good network it usually takes about 5-10 mins.
 "
 go get -d github.com/lightningnetwork/lnd
 cd "$GOPATH"/src/github.com/lightningnetwork/lnd
 make
 make install # installs to /home/standup/gocode/bin which is $GOPATH/bin
 
+# go back to script directory
+cd -
+
 LND_VERSION=$(lnd --version)
 echo "
------------$0 - installed $LND_VERSION
+$MESSAGE_PREFIX installed $LND_VERSION
 "
 
 sudo cp $GOPATH/bin/lnd $GOPATH/bin/lncli /usr/bin
 
-# create symbolic link to bitcoin config
-ln -s /etc/bitcoin/bitcoin.conf ~standup/.bitcoin/bitcoin.conf
-
-# create config necessary directories
+# create necessary directories
 mkdir -p /etc/lnd
+mkdir -p /var/lib/lnd
+chown standup:standup -R /var/lib/lnd
 
 BTC_NETWORK=""
 if [[ "$NETWORK" = "mainnet" ]]
@@ -102,7 +108,7 @@ maxlogfiles=3
 maxlogfilesize=10
 #externalip=1.1.1.1 # change to your public IP address if required.
 alias=$LN_ALIAS
-listen=0.0.0.0:9375
+listen=0.0.0.0:9735
 debuglevel=debug
 
 [Bitcoin]
@@ -122,11 +128,15 @@ tor.active=true
 tor.v3=true
 EOF
 
-# set directories & appropriate permissions
-mkdir -p /var/lib/lnd
-chown standup:root -R /var/lib/lnd
-chown standup:root -R /etc/lnd
+# set appropriate permissions
 chmod 644 /etc/lnd/lnd.conf
+
+# create soft link to the lnd data dir
+ln -s /var/lib/lnd ~standup/.lnd
+
+# add tor configuration to torrc
+sed -i -e 's/HiddenServicePort 1309 127.0.0.1:8332/HiddenServicePort 1309 127.0.0.1:8332\
+HiddenServicePort 1234 127.0.0.1:9735/g' /etc/tor/torrc
 
 # create systemd service
 cat > /etc/systemd/system/lnd.service << EOF
@@ -163,33 +173,6 @@ RestartSec=60
 WantedBy=multi-user.target
 EOF
 
-ln -s /var/lib/lnd ~standup/.lnd
-
-
-# [Unit]
-# Description=LND Lightning Daemon
-# Wants=bitcoind.service
-# After=bitcoind.service
-
-# # for use with sendmail alert
-# #OnFailure=systemd-sendmail@%n
-
-# [Service]
-# EnvironmentFile=/run/publicip
-# ExecStart=/usr/local/bin/lnd --sync-freelist --externalip=${PUBLICIP}:9736
-# PIDFile=/home/bitcoin/.lnd/lnd.pid
-# User=bitcoin
-# Group=bitcoin
-# LimitNOFILE=128000
-# Type=simple
-# KillMode=process
-# TimeoutSec=180
-# Restart=always
-# RestartSec=60
-
-# [Install]
-# WantedBy=multi-user.target
-# #
 
 #enable lnd service
 sudo systemctl enable lnd
@@ -197,40 +180,22 @@ sudo systemctl start lnd
 
 # check if lnd running
 echo "
--------$0 - Checking if LND is running
+$MESSAGE_PREFIX Checking if LND is running
 "
-# waiting=3
-# while [[ $(systemctl is-active lnd) != "active" ]] && [[ "$waiting" -gt 0 ]]
-# do
-# echo "waiting..."
-sleep 10
-# "$waiting"="$waiting" - 1
+
 if [[ $(systemctl status lnd | grep active | awk '{print $2}') = "active" ]]; then
   echo "
-  --------$0 - LND service now is active.
+  $MESSAGE_PREFIX LND service now is active.
   "
-  echo "
-  -------$0 - chekcing LND and Tor..
-  "
-  LND_TOR_ADDRESS=$(lncli getinfo | grep onion)
-  if [[ -n "$LND_TOR_ADDRESS" ]]
-  then
-    echo "--------$0 - Your LND Tor address is:
-
-    $LND_TOR_ADDRESS
-    "
-  fi
   echo "LND is fully active and working with Tor.
-  To create a wallet do (without the $) :
+  To interact with LND first create a wallet (without the $):
   $ lncli create
   "
-  exit 0
 else
   echo "
-  -------$0 - LND not yet active. Check manually using (without the $) :
+  $MESSAGE_PREFIX LND not yet active. Check manually using (without the $) :
 
   $ sudo systemctl status lnd
   "
 fi
-# break
-# done
+
