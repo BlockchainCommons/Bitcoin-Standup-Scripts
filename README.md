@@ -36,7 +36,7 @@ The `$` represents a terminal command prompt; do not actually type in a `$`.
 3. Create the file for the script:
    `$ nano standup.sh`
 
-   - Nano is a text editor that works in a terminal, you need to paste the entire contents of the [Standup script](Scripts/Standup.sh) into your terminal after running the above command. Then you can type:
+   - Nano is a text editor that works in a terminal, you need to paste the entire contents of the [Standup script](Scripts/StandUp.sh) into your terminal after running the above command. Then you can type:
       - `control x` (this starts to exit nano)
     - `y`         (this confirms you want to save the file)
     - `return`    (just press enter to confirm you want to save and exit)
