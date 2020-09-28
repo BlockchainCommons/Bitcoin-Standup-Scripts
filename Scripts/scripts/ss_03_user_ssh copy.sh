@@ -14,6 +14,9 @@ if [ -z "$(cat /etc/shadow | grep standup)" ] && [ -z "$(groups standup)" ]; the
   /usr/sbin/adduser standup sudo
   /usr/sbin/adduser standup standup
 
+  # make scripts directory for useful scripts
+  mkdir /home/standup/scripts
+  chown standup /home/standup/scripts
   echo "
 $MESSAGE_PREFIX User standup created with sudo access.
   "

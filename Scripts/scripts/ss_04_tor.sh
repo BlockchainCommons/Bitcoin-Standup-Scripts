@@ -53,7 +53,7 @@ sed -i -e 's/#CookieAuthentication 1/CookieAuthentication 1/g' /etc/tor/torrc
 sed -i -e 's/#CookieAuthFileGroupReadable 1/CookieAuthFileGroupReadable 1/g' /etc/tor/torrc
 sed -i -e 's/## address y:z./## address y:z.\
 \
-HiddenServiceDir \/var\/lib\/tor\/standup\/\
+HiddenServiceDir \/var\/lib\/tor\/standup\/bitcoin\/\
 HiddenServiceVersion 3\
 HiddenServicePort 1309 127.0.0.1:18332\
 HiddenServicePort 1309 127.0.0.1:18443\
@@ -70,7 +70,7 @@ sudo usermod -a -G debian-tor standup
 sudo systemctl restart tor.service
 
 
-if [ "$(systemctl is-active tor) | grep active" ]; then
+if [[ -n "$(systemctl is-active tor) | grep active" ]]; then
 echo "
 $MESSAGE_PREFIX Tor installed and successfully started
 "

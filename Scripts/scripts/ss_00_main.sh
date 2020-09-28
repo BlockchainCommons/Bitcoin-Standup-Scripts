@@ -2,8 +2,6 @@
 
 # standup.sh
 
-# TODO: Get opinion on `` vs $() as backticks are portable to legacy shells
-
 set +ex
 
 # If script not sourced, stop here
@@ -11,6 +9,8 @@ if [[ "$0" = "$BASH_SOURCE" ]]; then
     echo "This script must be sourced like so: \"source standup.sh\""
     return 1
 fi
+
+SCRIPTS_DIR="$PWD"
 
 # message formatting variables
 MESSAGE_PREFIX="-------Standup -"
@@ -34,38 +34,52 @@ config_get() {
     printf -- "%s" "${val}";
 }
 
+# Environment Variables
 # system
 NOPROMPT="$(config_get NOPROMPT)"
-VPS="$(config_get VPS)"
 USERPASSWORD="$(config_get USERPASSWORD)"
 
 # vps
+VPS="$(config_get VPS)"
 FQDN="$(config_get FQDN)"
 HOSTNAME="$(config_get HOSTNAME)"
 REGION="$(config_get REGION)"
-
-# bitcoind
-NETWORK="$(config_get NETWORK)"
-PRUNE="$(config_get PRUNE)"
-FASTSYNC="$(config_get FASTSYNC)"
-HWI="$(config_get HWI)"
-
-# lightning
-LIGHTNING="$(config_get LIGHTNING)"
-LN_ALIAS="$(config_get LN_ALIAS)"
-
-# services
-ESPLORA="$(config_get ESPLORA)"
-BTCPAYSERVER="$(config_get BTCPAYSERVER)"
 
 # Tor & SSH
 TOR_PUBKEY="$(config_get TOR_PUBKEY)"
 SSH_KEY="$(config_get SSH_KEY)"
 SYS_SSH_IP="$(config_get SYS_SSH_IP)"
 
+# bitcoind
+NETWORK="$(config_get NETWORK)"
+BTC_DATA_DIR="$(config_get BTC_DATA_DIR)"
+PRUNE="$(config_get PRUNE)"
+# FASTSYNC="$(config_get FASTSYNC)"
+# HWI="$(config_get HWI)"
+
+# lightning
+LIGHTNING="$(config_get LIGHTNING)"
+LN_ALIAS="$(config_get LN_ALIAS)"
+
+# c-lightning
+# CLN_HTTP_PLUGIN="$(config_get CLN_HTTP_PLUGIN)"
+# HTTP_PASS="$(config_get HTTP_PASS)"
+
+# services
+ESPLORA="$(config_get ESPLORA)"
+BTCPAYSERVER="$(config_get BTCPAYSERVER)"
+
+# esplora
+LIGHTMODE="$(config_get LIGHTMODE)"
+LIMIT_BATCH_SIZE="$(config_get LIMIT_BATCH_SIZE)"
+ELECTRS_DB="$(config_get ELECTRS_DB)"
+CORS="$(config_get CORS)"
+PRERENDER_ASSETS="$(config_get PRERENDER_ASSETS)"
+
 # btcpay server
 BTCPAY_HOST="$(config_get BTCPAY_HOST)"
 BTCPAY_LN="$(config_get BTCPAY_LN)"
+
 
 ####
 # Parsing Arguments
@@ -77,12 +91,12 @@ key="$1"
   case $key in
     -h|--help)
       source ./ss_01_help.sh
-      return 3
+      return 2
       ;;
     -*|--*=) # unsupported flags
       echo "Error: Unsupported flag $1" >&2
       source ./ss_01_help.sh
-      return 7
+      return 3
       ;;
     *) # preserve positional arguments
       PARAMS="$PARAMS $1"
@@ -113,7 +127,15 @@ echo "$MESSAGE_PREFIX Logged in as root. Continuing with installation.
 # Output stdout and stderr to ~root files
 exec > >(tee -a /root/standup.log) 2> >(tee -a /root/standup.log /root/standup.err >&2)
 
+####
+# 1. Update Hostname and set timezone
+####
+# source vps setup script
+if "$VPS"; then
+  source ./ss_00.1_vps.sh
+fi
 
+cd "$SCRIPTS_DIR"
 
 # Display script configuration
 echo "
@@ -123,31 +145,14 @@ Parameters Passed:
 System
 ------
 NOPROMPT......: $NOPROMPT
-VPS...........: $VPS
 USERPASSWORD..: $USERPASSWORD
 
 VPS
 ---
+VPS...........: $VPS
 FQDN..........: $FQDN
 HOSTNAME......: $HOSTNAME
 REGION........: $REGION
-
-Bitcoin
---------
-NETWORK.......: $NETWORK
-PRUNE.........: $PRUNE
-FASTSYNC......: $FASTSYNC
-HWI...........: $HWI
-
-Lightning
-----------
-LIGHTNING.....: $LIGHTNING
-LN_ALIAS......: $LN_ALIAS
-
-Services
----------
-ESPLORA.......: $ESPLORA
-BTCPAYSERVER..: $BTCPAYSERVER
 
 Tor & SSH
 ----------
@@ -155,20 +160,42 @@ TOR_PUBKEY....: $TOR_PUBKEY
 SSH_KEY.......: $SSH_KEY
 SYS_SSH_IP....: $SYS_SSH_IP
 
+Bitcoin
+--------
+NETWORK.............: $NETWORK
+BTC_DATA_DIR........: $BTC_DATA_DIR
+PRUNE...............: $PRUNE
+
+Lightning
+----------
+LIGHTNING...........: $LIGHTNING
+LN_ALIAS............: $LN_ALIAS
+
+Services
+---------
+ESPLORA.............: $ESPLORA
+BTCPAYSERVER........: $BTCPAYSERVER
+
+Esplora
+-------
+LIGHTMODE...........: $LIGHTMODE
+LIMIT_BATCH_SIZE....: $LIMIT_BATCH_SIZE
+ELECTRS_DB..........: $ELECTRS_DB
+CORS................: $CORS
+PRERENDER_ASSETS....: $PRERENDER_ASSETS
+
 BTCPAY Server
 -------------
-BTCPAY_HOST...: $BTCPAY_HOST
-BTCPAY_LN.....: $BTCPAY_LN
+BTCPAY_HOST.........: $BTCPAY_HOST
+BTCPAY_LN...........: $BTCPAY_LN
 "
+# FASTSYNC............: $FASTSYNC
+# HWI.................: $HWI
 
-
-####
-# 1. Update Hostname and set timezone
-####
-# source vps setup script
-if "$VPS"; then
-  source ./ss_00.1_vps.sh
-fi
+# c-lightning
+# -----------
+# CLN_HTTP_PLUGIN.....: $CLN_HTTP_PLUGIN
+# HTTP_PASS...........: $HTTP_PASS
 
 
 # prompt user before continuing with installation
@@ -178,7 +205,7 @@ fi
 
 if [[ "$confirm" != [yY] ]]; then
   echo "Entered $confirm. Exiting.."
-  return 8
+  return 4
 else
   NOPROMPT=true
   echo "Installing Bitcoin!"
@@ -202,6 +229,7 @@ apt-get dist-upgrade -y
 # source dependency script
 source ./ss_02_dependencies.sh
 
+cd "$SCRIPTS_DIR"
 
 ####
 # 3. Create user admin
@@ -209,6 +237,7 @@ source ./ss_02_dependencies.sh
 # source user and ssh script
 source ./ss_03_user_ssh.sh
 
+cd "$SCRIPTS_DIR"
 
 ####
 # 4. Install Tor
@@ -218,6 +247,8 @@ source ./ss_04_tor.sh
 
 # sleep 4 seconds for tor to restart
 sleep 4
+
+cd "$SCRIPTS_DIR"
 
 ####
 # 5. Install Bitcoin
@@ -230,40 +261,60 @@ if [[ -n "$BITCOIND_VERSION" ]]; then
   $MESSAGE_PREFIX bitcoind is already installed, version: $BITCOIND_VERSION
   ----------------
   "
-  return 0
 else
   source ./ss_05_bitcoin.sh
 fi
 
 sleep 4
 
+BITCOIND_IS=$(systemctl status bitcoind | grep active | awk '{print $2}')
 echo "
 
-----------------
+---------------------------------------
 
-  $MESSAGE_PREFIX bitcoind service is: $(systemctl status bitcoind | grep active | awk '{print $2}')
+  $MESSAGE_PREFIX bitcoind service is: $BITCOIND_IS
 
-----------------
+---------------------------------------
 "
+cd "$SCRIPTS_DIR"
 
 ####
 # Lightning
 ####
 # source lightning script
-if [[ "$LIGHTNING" = "c-lightning" ]]; then
+if [[ "$LIGHTNING" == "c-lightning" ]]; then
   source ./ss_06_c-lightning.sh
-else
+elif [[ "$LIGHTNING" == "lnd" ]]; then
   source ./ss_06_lnd.sh
 fi
 
+cd "$SCRIPTS_DIR"
 
 ####
-# BTCPay Server
+# Esplora
 ####
-# source btcpay script
-if "$BTCPAYSERVER"; then
-  source ./ss_07_btcpayserver.sh
+# source esplora script
+if "$ESPLORA"; then
+  source ./ss_07_esplora.sh
 fi
+
+cd "$SCRIPTS_DIR"
+
+###
+# BTCPay Server
+###
+# source btcpay script
+# if "$BTCPAYSERVER"; then
+#   source ./ss_08_btcpayserver.sh
+# fi
+
+cd "$SCRIPTS_DIR"
+
+# move the stack scripts to user standup
+cp -r $SCRIPTS_DIR ~standup/
+chown standup ~standup/scripts-conf
+cd ~standup/scripts-conf
+rm -r $SCRIPTS_DIR
 
 # Finished, exit script
 return 0

@@ -16,7 +16,7 @@ echo "
 
 # CURRENT BITCOIN RELEASE:
 # Change as necessary
-export BITCOIN="bitcoin-core-0.20.0"
+export BITCOIN="bitcoin-core-0.20.1"
 export BITCOINPLAIN=`echo $BITCOIN | sed 's/bitcoin-core/bitcoin/'`
 
 # # get bitcoin tar.gz, shasums and signing keys
@@ -33,6 +33,7 @@ if ! [[ -f ~standup/"$BITCOINPLAIN"-x86_64-linux-gnu.tar.gz ]]; then
 $MESSAGE_PREFIX Downloading $BITCOIN, this will take a while!
 ----------------
   "
+
 sudo -u standup torsocks wget --progress=bar:force http://6hasakffvppilxgehrswmffqurlcjjjhd76jgvaqmsg6ul25s7t3rzyd.onion/bin/"$BITCOIN"/"$BITCOINPLAIN"-x86_64-linux-gnu.tar.gz -O ~standup/"$BITCOINPLAIN"-x86_64-linux-gnu.tar.gz
 fi
 
@@ -107,25 +108,73 @@ echo "
 $MESSAGE_PREFIX Configuring Bitcoin.
 "
 
-sudo -u standup /bin/mkdir ~standup/.bitcoin
+# create bitcoin data dir
+mkdir $BTC_DATA_DIR/.bitcoin
+FULL_BTC_DATA_DIR=$BTC_DATA_DIR/.bitcoin
+chown standup $FULL_BTC_DATA_DIR
+# create a symlink user standup's home directory.
+if [[ "$BTC_DATA_DIR" != /home/standup ]]; then
+  ln -s $FULL_BTC_DATA_DIR /home/standup/
+fi
 
 RPCPASSWORD=$(xxd -l 16 -p /dev/urandom)
+RPCUSER="StandUp"
 
 if [[ "$PRUNE" -eq 0 ]] || [[ "$PRUNE" == "__UNDEFINED__" ]]; then
   PRUNE=""
 fi
 
-cat >> ~standup/.bitcoin/bitcoin.conf << EOF
+# # FastSync implementation - WIP
+# UTXO_MN_609375_SHA="52f0fc62dd28d016f49a75c22a6fa0827efc730f882bfa8cbc5ef96736d12100"
+# UTXO_TN_1445586_SHA="eabaaa717bb8eeaf603e383dd8642d9d34df8e767fccbd208b0c936b79c82742"
+
+# if "$FASTSYNC" && [[ "$NETWORK" == mainnet ]]; then
+#   UTXO_DOWNLOAD_LINK="http://utxosets.blob.core.windows.net/public/utxo-snapshot-bitcoin-mainnet-609375.tar"
+#   TAR_NAME="$(basename UTXO_DOWNLOAD_LINK)"
+#   echo "
+#   $MESSAGE_PREFIX downloading mainnet UTXO snapshot from BTCPay server
+#   "
+#   wget "$UTXO_DOWNLOAD_LINK" -q --show-progress
+#   UTXO_DL_SHA="$(sha256sum $TAR_NAME)"
+#   if [[ "$UTXO_MN_609375_SHA" != "$UTXO_DL_SHA" ]]; then
+#     echo "
+#     $MESSAGE_PREFIX the downloaded UTXO set failed SHA verification and is untrested, exiting.
+#     "
+#     return 103
+#   else
+#     tar -xf "$TAR_FILE" -C "$FULL_BTC_DATA_DIR"
+#   fi
+# elif "$FASTSYNC" && [[ "$NETWORK" == testnet ]]; then
+#   UTXO_DOWNLOAD_LINK="http://utxosets.blob.core.windows.net/public/utxo-snapshot-bitcoin-testnet-1445586.tar"
+#   TAR_NAME="$(basename UTXO_DOWNLOAD_LINK)"
+#   echo "
+#   $MESSAGE_PREFIX downloading testnet UTXO snapshot from BTCPay server
+#   "
+#   wget "$UTXO_DOWNLOAD_LINK" -q --show-progress
+#   UTXO_DL_SHA="$(sha256sum $TAR_NAME)"
+#   if [[ "$UTXO_MN_609375_SHA" != "$UTXO_DL_SHA" ]]; then
+#     echo "
+#     $MESSAGE_PREFIX the downloaded UTXO set failed SHA verification and is untrested, exiting.
+#     "
+#     return 103
+#   else
+#     tar -xf "$TAR_FILE" -C "$FULL_BTC_DATA_DIR/testnet3"
+#   fi
+# fi
+
+cat >> $FULL_BTC_DATA_DIR/bitcoin.conf << EOF
 # launches bitcoind as server to accept rpc connections
 server=1
-
 debug=tor
+
+# Specify a non-default location to store blockchain and other data.
+datadir=$FULL_BTC_DATA_DIR
 
 # prune
 prune=$PRUNE
 
 # rpc credentials
-rpcuser=StandUp
+rpcuser=$RPCUSER
 rpcpassword=$RPCPASSWORD
 rpcallowip=127.0.0.1
 
@@ -135,14 +184,14 @@ zmqpubrawtx=tcp://127.0.0.1:28333
 EOF
 
 if [[ -z "$PRUNE" ]] || [[ "$PRUNE" == "__UNDEFINED__" ]]; then
-  cat >> ~standup/.bitcoin/bitcoin.conf << EOF
+  cat >> $FULL_BTC_DATA_DIR/bitcoin.conf << EOF
   txindex=1
 EOF
 fi
 
 # you are adding anything to the config file then add before this block else, the settings will only be affected in the specified network block.
 # conversely, add settings specific to a particular network in their respective blocks.
-cat >> ~standup/.bitcoin/bitcoin.conf << EOF
+cat >> $FULL_BTC_DATA_DIR/bitcoin.conf << EOF
 [test]
 rpcbind=127.0.0.1
 rpcport=18332
@@ -154,8 +203,8 @@ rpcbind=127.0.0.1
 rpcport=18443
 EOF
 
-/bin/chown standup ~standup/.bitcoin/bitcoin.conf
-/bin/chmod 600 ~standup/.bitcoin/bitcoin.conf
+/bin/chown standup $FULL_BTC_DATA_DIR/bitcoin.conf
+/bin/chmod 740 $FULL_BTC_DATA_DIR/bitcoin.conf
 
 # Setup bitcoind as a service that requires Tor
 echo "
@@ -174,11 +223,12 @@ sudo cat > /etc/systemd/system/bitcoind.service << EOF
 
 [Unit]
 Description=Bitcoin daemon
-After=tor.service
 Requires=tor.service
+After=tor.service
 
 [Service]
 ExecStart=/usr/local/bin/bitcoind -conf=/home/standup/.bitcoin/bitcoin.conf
+
 # Process management
 ####################
 Type=simple
@@ -187,9 +237,9 @@ Restart=on-failure
 
 # Directory creation and permissions
 ####################################
-# Run as bitcoin:bitcoin
+# Run as standup:standup
 User=standup
-Group=sudo
+Group=standup
 # /run/bitcoind
 RuntimeDirectory=bitcoind
 RuntimeDirectoryMode=0710
@@ -228,7 +278,7 @@ sudo systemctl start bitcoind.service
 ####
 if [[ $(systemctl status bitcoind | grep active | awk '{print $2}') = "active" ]]; then
   # Get the Tor onion address for the QR code
-  HS_HOSTNAME=$(sudo cat /var/lib/tor/standup/hostname)
+  HS_HOSTNAME="$(sudo cat /var/lib/tor/standup/bitcoin/hostname)"
 
   # Create the QR string
   QR="btcstandup://StandUp:"$RPCPASSWORD"@"$HS_HOSTNAME":1309/?label=StandUp.sh"
@@ -248,6 +298,12 @@ $MESSAGE_PREFIX You can manually stop Bitcoin with: sudo systemctl stop bitcoind
   "
   echo "
 $MESSAGE_PREFIX You can manually start Bitcoin with: sudo systemctl start bitcoind
+  "
+  echo "
+  $MESSAGE_PREFIX Your bitcoin data directory is:
+  -----------------------------------------------
+    $FULL_BTC_DATA_DIR
+  -----------------------------------------------
   "
 else
   echo "

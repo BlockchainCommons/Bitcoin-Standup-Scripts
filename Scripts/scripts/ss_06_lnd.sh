@@ -56,18 +56,18 @@ $MESSAGE_PREFIX Go not installed, cannot install lnd
 fi
 
 # build lnd
-LND_LATEST_TAG="v0.9.2-beta"
+LND_VERSION="v0.11.0-beta.rc4"
 echo "
 $MESSAGE_PREFIX getting lnd... depending on your network it can take more than an hour. With good network it usually takes about 5-10 mins.
 "
 go get -d github.com/lightningnetwork/lnd
-git checkout $LND_LATEST_TAG
+git checkout $LND_VERSION
 cd "$GOPATH"/src/github.com/lightningnetwork/lnd
 make
 make install # installs to /home/standup/gocode/bin which is $GOPATH/bin
 
 # go back to script directory
-cd -
+cd "$SCRIPTS_DIR"
 
 sudo cp $GOPATH/bin/lnd $GOPATH/bin/lncli /usr/bin
 
@@ -105,6 +105,7 @@ debuglevel=debug
 [Bitcoin]
 bitcoin.active=1
 bitcoin.node=bitcoind
+bitcoin.dir=$BTC_DATA_DIR
 $BTC_NETWORK
 
 #[Bitcoind]
@@ -127,6 +128,8 @@ ln -s /var/lib/lnd ~standup/.lnd
 
 # add tor configuration to torrc
 sed -i -e 's/HiddenServicePort 1309 127.0.0.1:8332/HiddenServicePort 1309 127.0.0.1:8332\
+HiddenServiceDir \/var\/lib\/tor\/standup\/lnd\/\
+HiddenServiceVersion 3\
 HiddenServicePort 1234 127.0.0.1:9735/g' /etc/tor/torrc
 
 # create systemd service

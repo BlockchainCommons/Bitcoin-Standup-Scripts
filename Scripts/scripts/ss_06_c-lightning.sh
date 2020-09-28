@@ -8,8 +8,8 @@ echo "
 ----------------
 "
 
-export CLN_VERSION="v0.8.2.1"
-export LIGHTNING_DIR="~standup/.lightning"
+export CLN_VERSION="v0.9.1"
+export LIGHTNING_DIR="/home/standup/.lightning"
 
 echo "
 
@@ -35,27 +35,90 @@ make -j$(nproc --ignore=1) --quiet
 sudo make install
 
 # get back to script directory
-cd -
+cd "$SCRIPTS_DIR"
 
 # lightningd config
 mkdir -m 760 "$LIGHTNING_DIR"
 chown standup -R "$LIGHTNING_DIR"
 cat >> "$LIGHTNING_DIR"/config << EOF
 alias=StandUp
-log-level=debug
+
+log-level=debug:plugin
 log-prefix=standup
+
+bitcoin-datadir=$FULL_BTC_DATA_DIR
+# bitcoin-rpcuser=****
+# bitcoin-rpcpassword=****
+# bitcoin-rpcconnect=127.0.0.1
+# bitcoin-rpcport=8332
+
+# outgoing Tor connection
 proxy=127.0.0.1:9050
+# listen on all interfaces
+bind-addr=
+# listen only clearnet
 bind-addr=127.0.0.1:9735
 addr=statictor:127.0.0.1:9051
+# only use Tor for outgoing communication
 always-use-proxy=true
 EOF
 
 /bin/chmod 640 "$LIGHTNING_DIR"/config
 
+# create log file
+touch "$LIGHTNING_DIR"/lightning.log
+
 # add tor configuration to torrc
 sed -i -e 's/HiddenServicePort 1309 127.0.0.1:8332/HiddenServicePort 1309 127.0.0.1:8332\
-HiddenServiceDir \/var\/lib\/tor\/lightningd-service_v3\/\
+\
+HiddenServiceDir \/var\/lib\/tor\/standup\/lightningd-service_v3\/\
+HiddenServiceVersion 3\
 HiddenServicePort 1234 127.0.0.1:9735/g' /etc/tor/torrc
+
+#################
+# add http-plugin
+#################
+if "$CLN_HTTP_PLUGIN"; then
+  echo "
+  $MESSAGE_PREFIX installing Rust lang.
+  "
+  cd ~standup
+  /usr/sbin/runuser -l standup -c 'curl https://sh.rustup.rs -sSf | sh -s -- -y'
+  source ~standup/.cargo/env
+  echo "
+  $MESSAGE_PREFIX $(runsuer -l standup rustc - version) installed.
+  "
+  # get back to script directory & create plugins direcotry
+  cd "$SCRIPTS_DIR"
+  mkdir "$LIGHTNING_DIR"/plugins/
+
+  # get http-plugin & build
+  echo "
+  $MESSAGE_PREFIX getting c-lightning http-plugin.
+  "
+  sudo -u standup git clone https://github.com/Start9Labs/c-lightning-http-plugin.git "$LIGHTNING_DIR"/plugings/
+  cd "$LIGHTNING_DIR"/plugings/c-lightning-http-plugin/
+  cargo build --release
+  chmod a+x /home/you/.lightning/plugins/c-lightning-http-plugin/target/release/c-lightning-http-plugin
+  if [[ -z "$HTTP_PASS" ]]; then
+    while [[ -z "$HTTP_PASS" ]]; do
+      read -rp "Provide a strong password for https-plugin" HTTP_PASS
+    done
+  fi
+
+  # add config options
+  echo "
+plugin=/home/standup/.lightning/plugins/c-lightning-http-plugin/target/release/c-lightning-http-plugin
+http-pass=$HTTP_PASS
+https-port=1312
+" >> "$LIGHTNING_DIR"/config
+
+  # create HS for plugin
+  sed -i -e 's/HiddenServicePort 1234 127.0.0.1:9735/HiddenServicePort 1234 127.0.0.1:9735\
+HiddenServiceDir \/var\/lib\/tor\/standup\/lightningd-http-plugin_v3\/\
+HiddenServiceVersion 3\
+HiddenServicePort 1312 127.0.0.1:1312/g' /etc/tor/torrc
+fi
 
 echo "
 $MESSAGE_PREFIX Setting up c-lightning as a systemd service.

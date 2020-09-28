@@ -18,14 +18,14 @@ ${bold}Blockchain Commons Standup Script${normal}
 
 Contributor: jodobear 20-07-03
 
-${bold}DISCLAIMER:${normal} It is not a good idea to store large amounts of Bitcoin on a VPS, ideally you should use this as a watch-only wallet. This script is expiramental and has not been widely tested. The creators are not responsible for loss of funds. If you are not familiar with running a node or how Bitcoin works then we urge you to use this in testnet so that you can use it as a learning tool.
+${bold}DISCLAIMER:${normal} It is not a good idea to store large amounts of Bitcoin on a VPS, ideally you should use this as a watch-only wallet. This script is a work-in-progress and has not been widely tested. The creators are not responsible for loss of funds. If you are not familiar with running a node or how Bitcoin works then we urge you to use this in testnet so that you can use it as a learning tool.
 
 
 --------------------------------------
 ${bold}                Usage                 ${normal}
 --------------------------------------
 
-The script is inteded for a fresh bitcoin setup. Re-running the script on an already setup server is intended only for advanced user. In order to run this script ${bold}you need to be logged in as root${normal}, and enter in the commands listed below:
+The script is inteded for a fresh bitcoin setup. Re-running the script on an already setup server is intended only for advanced users. In order to run this script ${bold}you need to be logged in as root${normal}, and enter in the commands listed below:
 
 (The $ or # represents a terminal commmand prompt, do not actually type in a $ or #.)
 
@@ -33,7 +33,7 @@ The script is inteded for a fresh bitcoin setup. Re-running the script on an alr
 $ ${bold}sudo passwd${normal}
 
 2. Switch to the root user:
-$ ${bold}su - root${normal}
+$ ${bold}sudo su${normal}
 
 3. Edit config for your node setup using your favourite text editor:
 # ${bold}nano ss.conf${normal}
@@ -58,11 +58,11 @@ This script can be installed on any Debian based system. By default this script 
 Optionally you can install:
 ---------------------------
 - Install c-lightning or LND
-- Install BTCPay
-- Install HWI**
-- Install Esplora**
+- Install Esplora
+- Install BTCPay**
 
-** To be implemented
+
+** Work-in-progress
 
 QR Code:
 --------
