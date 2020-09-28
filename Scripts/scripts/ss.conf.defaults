@@ -96,7 +96,7 @@ LN_ALIAS=StandUp
 # set to true if you want to install an esplora server
 ESPLORA=false
 # set to true if you want to install btcpay server
-BTCPAYSERVER=false
+# BTCPAYSERVER=false
 
 
 ###########################
@@ -118,7 +118,7 @@ CORS=localhost
 # BTCPAY Server
 ###########################
 # the domain name where you will host your BTCPay Server.
-BTCPAY_HOST=
+# BTCPAY_HOST=
 # set the lightning network implementation for your BTCPay Server,
 # options: clightning or lnd
-BTCPAY_LN=
+# BTCPAY_LN=
