@@ -1,4 +1,6 @@
 # 🛠 Bitcoin-Standup Linux Scripts
+### _by Peter Denton and Christopher Allen_
+
 This script installs the latest stable version of Tor, Bitcoin Core, Uncomplicated Firewall (UFW), Debian updates, enables automatic updates for Debian for good security practices, installs a random number generator, and optionally a QR encoder and an image displayer.
 
 ## Additional Information
@@ -144,18 +146,6 @@ We do ask that you offer us good faith and use best efforts not to leak informat
 ### Reporting a Vulnerability
 
 Please report suspected security vulnerabilities in private via email to ChristopherA@BlockchainCommons.com (do not use this email for support). Please do NOT create publicly viewable issues for suspected security vulnerabilities.
-
-The following keys may be used to communicate sensitive information to developers:
-
-| Name              | Fingerprint                                        |
-| ----------------- | -------------------------------------------------- |
-| Christopher Allen | FDFE 14A5 4ECB 30FC 5D22  74EF F8D3 6C91 3574 05ED |
-
-You can import a key by running the following command with that individual’s fingerprint: `gpg --recv-keys "<fingerprint>"` Ensure that you put quotes around fingerprints that contain spaces.
-
-## Reporting a Vulnerability
-
-To report security issues send an email to ChristopherA@LifeWithAlacrity.com (not for support).
 
 The following keys may be used to communicate sensitive information to developers:
 
