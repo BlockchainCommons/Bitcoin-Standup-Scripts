@@ -92,6 +92,17 @@ SYS_SSH_IP=$4
 # Optional password for the standup non-privileged account - if you do not want to add one add "" as an argument
 USERPASSWORD=$5
 
+# CURRENT BITCOIN RELEASE:
+# Change as necessary
+export BITCOIN="bitcoin-core-0.20.0"
+
+# common options for architectures that run Core are;
+# newer intel and AMD processors 
+# amd64 (x86_64)
+# raspberry pies and Single-Board-Computers
+# arm64 (aarch64, armv8)
+export ARCH=amd64
+
 # Force check for root, if you are not logged in as root then the script will not execute
 if ! [ "$(id -u)" = 0 ]
 then
@@ -253,12 +264,9 @@ fi
 # Download Bitcoin
 echo "$0 - Downloading Bitcoin; this will also take a while!"
 
-# CURRENT BITCOIN RELEASE:
-# Change as necessary
-export BITCOIN="bitcoin-core-0.20.0"
 export BITCOINPLAIN=`echo $BITCOIN | sed 's/bitcoin-core/bitcoin/'`
 
-sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz -O ~standup/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz
+sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/$BITCOINPLAIN-$ARCH-linux-gnu.tar.gz -O ~standup/$BITCOINPLAIN-$ARCH-linux-gnu.tar.gz
 sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/SHA256SUMS.asc -O ~standup/SHA256SUMS.asc
 sudo -u standup wget https://bitcoin.org/laanwj-releases.asc -O ~standup/laanwj-releases.asc
 
@@ -281,8 +289,8 @@ else
 fi
 
 # Verify Bitcoin: SHA
-export TARSHA256=`/usr/bin/sha256sum ~standup/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz | awk '{print $1}'`
-export EXPECTEDSHA256=`cat ~standup/SHA256SUMS.asc | grep $BITCOINPLAIN-x86_64-linux-gnu.tar.gz | awk '{print $1}'`
+export TARSHA256=`/usr/bin/sha256sum ~standup/$BITCOINPLAIN-$ARCH-linux-gnu.tar.gz | awk '{print $1}'`
+export EXPECTEDSHA256=`cat ~standup/SHA256SUMS.asc | grep $BITCOINPLAIN-$ARCH-linux-gnu.tar.gz | awk '{print $1}'`
 
 if [ "$TARSHA256" == "$EXPECTEDSHA256" ]
 then
