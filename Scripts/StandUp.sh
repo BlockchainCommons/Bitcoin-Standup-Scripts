@@ -329,6 +329,17 @@ echo "$0 - Installinging Bitcoin."
 
 sudo -u standup /bin/tar xzf ~standup/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz -C ~standup
 /usr/bin/install -m 0755 -o root -g root -t /usr/local/bin ~standup/$BITCOINPLAIN/bin/*
+
+# Copy man pages.
+dest='/usr/local/share/man'
+if [[ ! -d $dest ]]
+then
+    mkdir -p $dest
+fi
+
+cp -r ~standup/$BITCOINPLAIN/share/man/man1 /usr/local/share/man
+command -v mandb && mandb 
+
 /bin/rm -rf ~standup/$BITCOINPLAIN/
 
 # Start Up Bitcoin
