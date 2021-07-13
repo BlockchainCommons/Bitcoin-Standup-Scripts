@@ -56,7 +56,7 @@ The `$` represents a terminal command prompt; do not actually type in a `$`.
 
 ### Method Two: Install Using `LinodeStandup.sh`
 
-The `LinodeStandup.sh` script is intended for use at [Linode.com](https://linode.com). You can find more precise information on using it from our [Learning Bitcoin from the Command Line course](https://github.com/BlockchainCommons/Learning-Bitcoin-from-the-Command-Line/blob/master/02_2_Setting_Up_a_Bitcoin-Core_VPS_with_StackScript.md). The following is a summary.
+The `LinodeStandup.sh` script is intended for use at [Linode.com](https://linode.com). You can find more precise information on using it from our [Learning Bitcoin from the Command Line course](https://github.com/BlockchainCommons/Learning-Bitcoin-from-the-Command-Line/blob/master/02_1_Setting_Up_a_Bitcoin-Core_VPS_with_StackScript.md). The following is a summary.
 
 First, copy the `LinodeStandup.sh` script to your Linode:
 
@@ -79,7 +79,7 @@ Second, create a node based on the script:
 
 ### Method Three: Install by Hand (Not Recommended)
 
-Finally, if you prefer, you can install all of the packages for *Bitcoin-Standup* by hand. The  [Learning Bitcoin from the Command Line](https://github.com/ChristopherA/Learning-Bitcoin-from-the-Command-Line) course has [instructions on how to do so](https://github.com/BlockchainCommons/Learning-Bitcoin-from-the-Command-Line/blob/master/02_1_Setting_Up_a_Bitcoin-Core_VPS_by_Hand.md), but those methodologies will only install a full node, not include `tor` and not linking with the Quick Connect API. As such, this methodology is not recommended, but is simply included to provide you with the widest breadth of options.
+Finally, if you prefer, you can install all of the packages for *Bitcoin-Standup* by hand. The  [Learning Bitcoin from the Command Line](https://github.com/ChristopherA/Learning-Bitcoin-from-the-Command-Line) course has [instructions on how to do so](https://github.com/BlockchainCommons/Learning-Bitcoin-from-the-Command-Line/blob/master/02_2_Setting_Up_Bitcoin_Core_Other.md), but those methodologies will only install a full node, not include `tor` and not linking with the Quick Connect API. As such, this methodology is not recommended, but is simply included to provide you with the widest breadth of options.
 
 Because this by-hand methodology does not embody the full *Bitcoin-Standup* protocol, the following notes on what to do next do not apply.
 
@@ -124,7 +124,7 @@ The best place to talk about Blockchain Commons and its projects is in our GitHu
 
 ### Other Questions & Problems
 
-As an open-source, open-development community, Blockchain Commons does not have the resources to provide direct support of our projects. Please consider the discussions area as a locale where you might get answers to questions. Alternatively, please use this repository's [issues](./issues) feature. Unfortunately, we can not make any promises on response time.
+As an open-source, open-development community, Blockchain Commons does not have the resources to provide direct support of our projects. Please consider the discussions area as a locale where you might get answers to questions. Alternatively, please use this repository's [issues](https://github.com/BlockchainCommons/Bitcoin-Standup-Scripts/issues) feature. Unfortunately, we can not make any promises on response time.
 
 If your company requires support to use our projects, please feel free to contact us directly about options. We may be able to offer you a contract for support from one of our contributors, or we might be able to point you to another entity who can offer the contractual support that you need.
 
