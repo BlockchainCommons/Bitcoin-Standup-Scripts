@@ -8,8 +8,8 @@ This script installs the latest stable version of Tor, Bitcoin Core, Uncomplicat
 For more information on *Bitcoin-Standup*:
 
 1. The [Main *Bitcoin-Standup* Repo](https://github.com/BlockchainCommons/Bitcoin-Standup) contains general information on the project.
-2. [Why Run a Full Node?](Docs/Why-Full.md) details why you would want to run a full node in the first place.
-3. [Security for Bitcoin-Standup](Docs/Security) offers notes on ensuring the security of your *Bitcoin-Standup* node.
+2. [Why Run a Full Node?](https://github.com/BlockchainCommons/Gordian/blob/master/Docs/Why-Full.md) details why you would want to run a full node in the first place.
+3. [Security for Bitcoin-Standup](https://github.com/BlockchainCommons/Gordian/blob/master/Docs/Security.md) offers notes on ensuring the security of your *Bitcoin-Standup* node.
 
 ## Status — Work-in-Progress
 
@@ -79,7 +79,7 @@ Second, create a node based on the script:
 
 ### Method Three: Install by Hand (Not Recommended)
 
-Finally, if you prefer, you can install all of the packages for *Bitcoin-Standup* by hand. The  [Learning Bitcoin from the Command Line](https://github.com/ChristopherA/Learning-Bitcoin-from-the-Command-Line) course has [instructions on how to do so](https://github.com/ChristopherA/Learning-Bitcoin-from-the-Command-Line/blob/master/02_1_Setting_Up_a_Bitcoin-Core_VPS_by_Hand.md), but those methodologies will only install a full node, not include `tor` and not linking with the Quick Connect API. As such, this methodology is not recommended, but is simply included to provide you with the widest breadth of options.
+Finally, if you prefer, you can install all of the packages for *Bitcoin-Standup* by hand. The  [Learning Bitcoin from the Command Line](https://github.com/ChristopherA/Learning-Bitcoin-from-the-Command-Line) course has [instructions on how to do so](https://github.com/BlockchainCommons/Learning-Bitcoin-from-the-Command-Line/blob/master/02_1_Setting_Up_a_Bitcoin-Core_VPS_by_Hand.md), but those methodologies will only install a full node, not include `tor` and not linking with the Quick Connect API. As such, this methodology is not recommended, but is simply included to provide you with the widest breadth of options.
 
 Because this by-hand methodology does not embody the full *Bitcoin-Standup* protocol, the following notes on what to do next do not apply.
 
