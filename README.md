@@ -1,4 +1,6 @@
 # 🛠 Bitcoin-Standup Linux Scripts
+### _by Peter Denton and Christopher Allen_
+
 This script installs the latest stable version of Tor, Bitcoin Core, Uncomplicated Firewall (UFW), Debian updates, enables automatic updates for Debian for good security practices, installs a random number generator, and optionally a QR encoder and an image displayer.
 
 ## Additional Information
@@ -36,7 +38,7 @@ The `$` represents a terminal command prompt; do not actually type in a `$`.
 3. Create the file for the script:
    `$ nano standup.sh`
 
-   - Nano is a text editor that works in a terminal, you need to paste the entire contents of the [Standup script](Scripts/Standup.sh) into your terminal after running the above command. Then you can type:
+   - Nano is a text editor that works in a terminal, you need to paste the entire contents of the [Standup script](Scripts/StandUp.sh) into your terminal after running the above command. Then you can type:
       - `control x` (this starts to exit nano)
     - `y`         (this confirms you want to save the file)
     - `return`    (just press enter to confirm you want to save and exit)
@@ -112,9 +114,17 @@ To financially support further development of *Bitcoin-Standup* and other projec
 
 We encourage public contributions through issues and pull requests! Please review [CONTRIBUTING.md](./CONTRIBUTING.md) for details on our development process. All contributions to this repository require a GPG signed [Contributor License Agreement](./CLA.md).
 
-### Questions & Support
+### Discussions
 
-As an open-source, open-development community, Blockchain Commons does not have the resources to provide direct support of our projects. If you have questions or problems, please use this repository's [issues](./issues) feature. Unfortunately, we can not make any promises on response time.
+The best place to talk about Blockchain Commons and its projects is in our GitHub Discussions areas.
+
+[**Gordian System Discussions**](https://github.com/BlockchainCommons/Gordian/discussions). For users and developers of the Gordian system, including the Gordian Server, Bitcoin Standup technology, QuickConnect, and the Gordian Wallet. If you want to talk about our linked full-node and wallet technology, suggest new additions to our Bitcoin Standup standards, or discuss the implementation our standalone wallet, the Discussions area of the [main Gordian repo](https://github.com/BlockchainCommons/Gordian) is the place.
+
+[**Blockchain Commons Discussions**](https://github.com/BlockchainCommons/Community/discussions). For developers, interns, and patrons of Blockchain Commons, please use the discussions area of the [Community repo](https://github.com/BlockchainCommons/Community) to talk about general Blockchain Commons issues, the intern program, or topics other than the [Gordian System](https://github.com/BlockchainCommons/Gordian/discussions) or the [wallet standards](https://github.com/BlockchainCommons/AirgappedSigning/discussions), each of which have their own discussion areas.
+
+### Other Questions & Problems
+
+As an open-source, open-development community, Blockchain Commons does not have the resources to provide direct support of our projects. Please consider the discussions area as a locale where you might get answers to questions. Alternatively, please use this repository's [issues](./issues) feature. Unfortunately, we can not make any promises on response time.
 
 If your company requires support to use our projects, please feel free to contact us directly about options. We may be able to offer you a contract for support from one of our contributors, or we might be able to point you to another entity who can offer the contractual support that you need.
 
@@ -136,18 +146,6 @@ We do ask that you offer us good faith and use best efforts not to leak informat
 ### Reporting a Vulnerability
 
 Please report suspected security vulnerabilities in private via email to ChristopherA@BlockchainCommons.com (do not use this email for support). Please do NOT create publicly viewable issues for suspected security vulnerabilities.
-
-The following keys may be used to communicate sensitive information to developers:
-
-| Name              | Fingerprint                                        |
-| ----------------- | -------------------------------------------------- |
-| Christopher Allen | FDFE 14A5 4ECB 30FC 5D22  74EF F8D3 6C91 3574 05ED |
-
-You can import a key by running the following command with that individual’s fingerprint: `gpg --recv-keys "<fingerprint>"` Ensure that you put quotes around fingerprints that contain spaces.
-
-## Reporting a Vulnerability
-
-To report security issues send an email to ChristopherA@LifeWithAlacrity.com (not for support).
 
 The following keys may be used to communicate sensitive information to developers:
 

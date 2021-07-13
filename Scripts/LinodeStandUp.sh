@@ -1,10 +1,9 @@
 #!/bin/bash
 
-#  LinodeStandUp.sh
+#  LinodeStandUp.sh - Installs Bitcore-Core full node (pruned or archival) behind a tor address.
 #  
-#
-#  Created by Peter on 02/12/19.
-#  
+#  Created by Peter on 2019-02-12-19.
+#  Updated to install Bitcoin-Core 0.20.1 on 2020-11-18
 
 # DISCLAIMER: It is not a good idea to store large amounts of Bitcoin on a VPS,
 # ideally you should use this as a watch-only wallet. This script is expiramental
@@ -75,7 +74,7 @@ fi
 
 # CURRENT BITCOIN RELEASE:
 # Change as necessary
-export BITCOIN="bitcoin-core-0.19.1"
+export BITCOIN="bitcoin-core-0.20.1"
 
 # Output stdout and stderr to ~root files
 exec > >(tee -a /root/standup.log) 2> >(tee -a /root/standup.log /root/standup.err >&2)
