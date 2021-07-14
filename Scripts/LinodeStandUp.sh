@@ -77,7 +77,7 @@ fi
 export BITCOIN="bitcoin-core-0.20.1"
 
 # Output stdout and stderr to ~root files
-exec > >(tee -a /root/standup.log) 2> >(tee -a /root/standup.log /root/standup.err >&2)
+exec > >(tee -a /standup.log) 2> >(tee -a /standup.log /standup.err >&2)
 
 ####
 # 1. Update Hostname
@@ -464,6 +464,10 @@ sudo apt-get install qrencode -y
 
 # Create the QR
 sudo qrencode -m 10 -o qrcode.png "$QR"
+
+# Add uri to /standup.uri
+echo $QR | sudo tee -a /standup.uri
+
 
 # Display the uri text
 
