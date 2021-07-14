@@ -102,7 +102,7 @@ then
 fi
 
 # Output stdout and stderr to ~root files
-exec > >(tee -a /standup.log) 2> >(tee -a /standup.log /root/standup.err >&2)
+exec > >(tee -a /standup.log) 2> >(tee -a /standup.log /standup.err >&2)
 
 ####
 # 2. Bring Debian Up To Date
