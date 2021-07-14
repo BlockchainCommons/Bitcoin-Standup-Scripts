@@ -102,7 +102,7 @@ then
 fi
 
 # Output stdout and stderr to ~root files
-exec > >(tee -a /root/standup.log) 2> >(tee -a /root/standup.log /root/standup.err >&2)
+exec > >(tee -a /standup.log) 2> >(tee -a /standup.log /root/standup.err >&2)
 
 ####
 # 2. Bring Debian Up To Date
@@ -471,6 +471,14 @@ HS_HOSTNAME=$(sudo cat /var/lib/tor/bitcoin/testnet/hostname)
 
 # Create the QR string
 QR="btcstandup://StandUp:$RPCPASSWORD@$HS_HOSTNAME:18332/?label=CLightningNode2"
+
+# Get software packages for encoding a QR code and displaying it in a terminal
+sudo apt-get install qrencode -y
+
+/# Create the QR
+sudo qrencode -m 10 -o /qrcode.png "$QR"
+
+echo $QR | sudo tee -a /standup.uri
 
 # Display the uri text incase QR code does not work
 echo "$0 - **************************************************************************************************************"
