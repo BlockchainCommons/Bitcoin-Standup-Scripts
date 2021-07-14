@@ -199,18 +199,47 @@ sudo apt update
 sudo apt install tor deb.torproject.org-keyring
 
 # Setup hidden service
+
 sed -i -e 's/#ControlPort 9051/ControlPort 9051/g' /etc/tor/torrc
 sed -i -e 's/#CookieAuthentication 1/CookieAuthentication 1/g' /etc/tor/torrc
-sed -i -e 's/## address y:z./## address y:z.\
-\
-HiddenServiceDir \/var\/lib\/tor\/standup\/\
-HiddenServiceVersion 3\
-HiddenServicePort 1309 127.0.0.1:18332\
-HiddenServicePort 1309 127.0.0.1:18443\
-HiddenServicePort 1309 127.0.0.1:8332/g' /etc/tor/torrc
-mkdir /var/lib/tor/standup
-chown -R debian-tor:debian-tor /var/lib/tor/standup
-chmod 700 /var/lib/tor/standup
+
+cat >> /etc/tor/torrc << EOF
+HiddenServiceDir /var/lib/tor/bitcoin/mainnet/
+HiddenServiceVersion 3
+HiddenServicePort 8332 127.0.0.1:8332
+
+HiddenServiceDir /var/lib/tor/bitcoin/testnet/
+HiddenServiceVersion 3
+HiddenServicePort 18332 127.0.0.1:18332
+
+HiddenServiceDir /var/lib/tor/bitcoin/regtest/
+HiddenServiceVersion 3
+HiddenServicePort 18443 127.0.0.1:18443
+
+HiddenServiceDir /var/lib/tor/lightning/
+HiddenServiceVersion 3
+HiddenServicePort 8080 127.0.0.1:8080
+EOF
+
+mkdir /var/lib/tor/bitcoin
+chown -R debian-tor:debian-tor /var/lib/tor/bitcoin
+chmod 700 /var/lib/tor/bitcoin
+
+mkdir /var/lib/tor/bitcoin/mainnet
+chown -R debian-tor:debian-tor /var/lib/tor/bitcoin/mainnet
+chmod 700 /var/lib/tor/bitcoin/mainnet
+
+mkdir /var/lib/tor/bitcoin/testnet
+chown -R debian-tor:debian-tor /var/lib/tor/bitcoin/testnet
+chmod 700 /var/lib/tor/bitcoin/testnet
+
+mkdir /var/lib/tor/bitcoin/regtest
+chown -R debian-tor:debian-tor /var/lib/tor/bitcoin/regtest
+chmod 700 /var/lib/tor/bitcoin/regtest
+
+mkdir /var/lib/tor/lightning
+chown -R debian-tor:debian-tor /var/lib/tor/lightning
+chmod 700 /var/lib/tor/lightning
 
 # Add standup to the tor group so that the tor authentication cookie can be read by bitcoind
 sudo usermod -a -G debian-tor standup
@@ -255,12 +284,12 @@ echo "$0 - Downloading Bitcoin; this will also take a while!"
 
 # CURRENT BITCOIN RELEASE:
 # Change as necessary
-export BITCOIN="bitcoin-core-0.20.0"
+export BITCOIN="bitcoin-core-0.21.1"
 export BITCOINPLAIN=`echo $BITCOIN | sed 's/bitcoin-core/bitcoin/'`
 
-sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz -O ~standup/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz
-sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/SHA256SUMS.asc -O ~standup/SHA256SUMS.asc
-sudo -u standup wget https://bitcoin.org/laanwj-releases.asc -O ~standup/laanwj-releases.asc
+sudo -u standup wget https://bitcoincore.org/bin/bitcoin-core-0.21.1/bitcoin-0.21.1-x86_64-linux-gnu.tar.gz -O ~standup/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz
+sudo -u standup wget https://bitcoincore.org/bin/bitcoin-core-0.21.1/SHA256SUMS.asc -O ~standup/SHA256SUMS.asc
+sudo -u standup wget https://bitcoincore.org/keys/laanwj-releases.asc -O ~standup/laanwj-releases.asc
 
 # Verifying Bitcoin: Signature
 echo "$0 - Verifying Bitcoin."
@@ -438,10 +467,10 @@ sudo systemctl start bitcoind.service
 ####
 
 # Get the Tor onion address for the QR code
-HS_HOSTNAME=$(sudo cat /var/lib/tor/standup/hostname)
+HS_HOSTNAME=$(sudo cat /var/lib/tor/bitcoin/testnet/hostname)
 
 # Create the QR string
-QR="btcstandup://StandUp:$RPCPASSWORD@$HS_HOSTNAME:1309/?label=StandUp.sh"
+QR="btcstandup://StandUp:$RPCPASSWORD@$HS_HOSTNAME:18332/?label=CLightningNode2"
 
 # Display the uri text incase QR code does not work
 echo "$0 - **************************************************************************************************************"
@@ -454,4 +483,3 @@ echo "$0 - You can manually start Bitcoin with: sudo systemctl start bitcoind.se
 
 # Finished, exit script
 exit 1
-
