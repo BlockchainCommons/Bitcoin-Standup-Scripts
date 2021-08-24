@@ -74,6 +74,10 @@
 # If you do not want to add any arguments and run everything as per the defaults simply run:
 # ./standup.sh
 
+# Set USE_CYPHERPUNKPAY="YES" before running standup.sh if you want to install CypherpunkPay
+# Set CPPLITE='YES' before running standup.sh if you do not want to use a full node for CypherpunkPay. It will instead download blocks over Tor from randomised block explorers.
+# Set CYPHERPUNKPAY_CAUSE to something like "Please help Satoshi fund his digital cash project!". This message will appear on your donation's page.
+
 # For Tor V3 client authentication (optional), you can run standup.sh like:
 # ./standup.sh "descriptor:x25519:NWJNEFU487H2BI3JFNKJENFKJWI3"
 # and it will automatically add the pubkey to the authorized_clients directory, which
@@ -219,6 +223,10 @@ HiddenServicePort 18443 127.0.0.1:18443
 HiddenServiceDir /var/lib/tor/lightning/
 HiddenServiceVersion 3
 HiddenServicePort 8080 127.0.0.1:8080
+
+HiddenServiceDir /var/lib/tor/cypherpunkpay
+HiddenServiceVersion 3
+HiddenServicePort 8081 127.0.0.1:8081
 EOF
 
 mkdir /var/lib/tor/bitcoin
@@ -325,7 +333,7 @@ else
 fi
 
 # Install Bitcoin
-echo "$0 - Installinging Bitcoin."
+echo "$0 - Installing Bitcoin."
 
 sudo -u standup /bin/tar xzf ~standup/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz -C ~standup
 /usr/bin/install -m 0755 -o root -g root -t /usr/local/bin ~standup/$BITCOINPLAIN/bin/*
@@ -499,6 +507,36 @@ echo "$0 - *********************************************************************
 echo "$0 - Bitcoin is setup as a service and will automatically start if your VPS reboots and so is Tor"
 echo "$0 - You can manually stop Bitcoin with: sudo systemctl stop bitcoind.service"
 echo "$0 - You can manually start Bitcoin with: sudo systemctl start bitcoind.service"
+
+# Install CypherpunkPay
+# Ref. https://cypherpunkpay.org/installation/quick-start/
+
+USE_NODE='true'
+if [[ "$CPPLITE" == 'YES' ]]
+then
+    USE_NODE='false'
+fi
+
+if [[ "$USE_CYPHERPUNKPAY" = "YES" ]]
+then
+    wget -qO - https://deb.cypherpunkpay.org/cypherpunkpay-package-signer.asc | sudo apt-key add -
+
+    echo 'deb [arch=amd64] https://deb.cypherpunkpay.org/apt/ubuntu/ focal main' | sudo tee /etc/apt/sources.list.d/cypherpunkpay.list
+
+    sudo apt-get update -y && sudo apt-get install -y cypherpunkpay
+
+    sed -i -e  "s/listen = 127.0.0.1:8080/listen = 127.0.0.1:8081/;
+                s/btc_network = testnet/btc_network = mainnet/;
+                s/# btc_mainnet_account_xpub = REPLACE_ME_WITH_BTC_MAINNET_ACCOUNT_XPUB/btc_mainnet_account_xpub = $XPUB/;
+                s/btc_mainnet_node_enabled = false/btc_mainnet_node_enabled = $USE_NODE/;
+                s/btc_mainnet_node_rpc_user = bitcoin/btc_mainnet_node_rpc_user = StandUp/;
+                s/btc_mainnet_node_rpc_password = secret/btc_mainnet_node_rpc_password = $RPCPASSWORD/;
+                s/use_tor = false/use_tor = true/;
+                s/donations_cause =.*$/donations_cause = $CYPHERPUNKPAY_CAUSE" /etc/cypherpunkpay.conf
+
+    sudo systemctl enable cypherpunkpay
+    sudo systemctl start cypherpunkpay
+fi
 
 # Finished, exit script
 exit 1
