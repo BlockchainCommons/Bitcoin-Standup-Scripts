@@ -264,7 +264,7 @@ sudo -u standup  sh - c 'while read fingerprint keyholder_name; do gpg --keyserv
 # Verifying Bitcoin: Signature
 echo "$0 - Verifying Bitcoin."
 
-export SHASIG=`sudo -u standup /usr/bin/gpg --verify ~standup/SHA256SUMS.asc ~standup/SHA256SUMS 2>&1 | grep "Good signature" | wc -l`
+export SHASIG=`sudo -u standup /usr/bin/gpg --verify ~standup/SHA256SUMS.asc ~standup/SHA256SUMS 2>&1 | grep "Good signature"`
 echo "SHASIG is $SHASIG"
 
 if [ "$SHASIG" ]
