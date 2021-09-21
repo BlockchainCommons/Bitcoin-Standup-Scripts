@@ -3,7 +3,7 @@
 #  LinodeStandUp.sh - Installs Bitcore-Core full node (pruned or archival) behind a tor address.
 #  
 #  Created by Peter on 2019-02-12-19.
-#  Updated to install Bitcoin-Core 0.22.0 on 2020-11-18
+#  Updated to install Bitcoin-Core 0.22.0 on 2021-09-21
 
 # DISCLAIMER: It is not a good idea to store large amounts of Bitcoin on a VPS,
 # ideally you should use this as a watch-only wallet. This script is expiramental
@@ -259,18 +259,19 @@ sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/SHA256SUMS.asc -O ~sta
 sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/SHA256SUMS -O ~standup/SHA256SUMS
 
 sudo -u standup wget https://raw.githubusercontent.com/bitcoin/bitcoin/master/contrib/builder-keys/keys.txt -O ~standup/keys.txt
-sudo -u standup  sh - c 'while read fingerprint keyholder_name; do gpg --keyserver hkps://keys.openpgp.org --recv-keys ${fingerprint}; done < ~standup/keys.txt'
+sudo -u standup  sh -c 'while read fingerprint keyholder_name; do gpg --keyserver hkps://keys.openpgp.org --recv-keys ${fingerprint}; done < ~standup/keys.txt'
 
 # Verifying Bitcoin: Signature
 echo "$0 - Verifying Bitcoin."
 
 export SHASIG=`sudo -u standup /usr/bin/gpg --verify ~standup/SHA256SUMS.asc ~standup/SHA256SUMS 2>&1 | grep "Good signature"`
-echo "SHASIG is $SHASIG"
+export SHACOUNT=`sudo -u standup /usr/bin/gpg --verify ~standup/SHA256SUMS.asc ~standup/SHA256SUMS 2>&1 | grep "Good signature" | wc -l`
 
 if [ "$SHASIG" ]
 then
 
-    echo "$0 - SIG VERIFICATION SUCCESS: GOOD SIGNATURES FOUND: $SHASIG"
+    echo "$0 - SIG VERIFICATION SUCCESS: $SHACOUNT GOOD SIGNATURES FOUND."
+    echo "$SHASIG"
     
 else
 
