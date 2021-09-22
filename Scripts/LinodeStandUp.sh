@@ -207,9 +207,9 @@ sed -i -e 's/## address y:z./## address y:z.\
 \
 HiddenServiceDir \/var\/lib\/tor\/standup\/\
 HiddenServiceVersion 3\
-HiddenServicePort 1309 127.0.0.1:18332\
-HiddenServicePort 1309 127.0.0.1:18443\
-HiddenServicePort 1309 127.0.0.1:8332/g' /etc/tor/torrc
+HiddenServicePort 18332 127.0.0.1:18332\
+HiddenServicePort 18443 127.0.0.1:18443\
+HiddenServicePort 8332 127.0.0.1:8332/g' /etc/tor/torrc
 mkdir /var/lib/tor/standup
 chown -R debian-tor:debian-tor /var/lib/tor/standup
 chmod 700 /var/lib/tor/standup
@@ -467,7 +467,7 @@ sudo systemctl start bitcoind.service
 HS_HOSTNAME=$(sudo cat /var/lib/tor/standup/hostname)
 
 # Create the QR string
-QR="btcstandup://StandUp:$RPCPASSWORD@$HS_HOSTNAME:1309/?label=LinodeStandUp.sh"
+QR="btcstandup://StandUp:$RPCPASSWORD@$HS_HOSTNAME:8332/?label=LinodeStandUp.sh"
 echo "$0 - Ready to display the QuickConnect QR, first we need to install qrencode and fim"
 
 # Get software packages for encoding a QR code and displaying it in a terminal
