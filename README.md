@@ -1,5 +1,5 @@
 # 🛠 Bitcoin-Standup Linux Scripts
-### _by Peter Denton and Christopher Allen_
+### _by Peter Denton, Shannon Appelcline, and Christopher Allen_
 
 This script installs the latest stable version of Tor, Bitcoin Core, Uncomplicated Firewall (UFW), Debian updates, enables automatic updates for Debian for good security practices, installs a random number generator, and optionally a QR encoder and an image displayer.
 
@@ -13,14 +13,14 @@ For more information on *Bitcoin-Standup*:
 
 ## Status — Work-in-Progress
 
-*Bitcoin-Standup* is an early **Work-In-Progress**, so that we can prototype, discover additional requirements, and get feedback from the broader Bitcoin-Core Developer Community. ***It has not yet been peer-reviewed or audited. It is not yet ready for production uses. Use at your own risk.***
+The *Bitcoin-Standup-Scripts* are updated every year or two for the newest versions of Bitcoin and Debian, and so remain a work-in-progress. We're also working toward improving the modularity of various plug-ins that could be installed.
 
 ## Installation Instructions
 
 There are two linux based StandUp scripts; `StandUp.sh` and `LinodeStandUp.sh`.
 
-* `LinodeStandUp.sh` is built as a StackScript for the Linode platform and can be used as is. It's been tested on Debian 9 (Stretch) and Debian 10 (Buster).
-* `StandUp.sh` can be used on a Debian VPS and has been tested on Debian 9 (Stretch) and Ubuntu 18.04.
+* `LinodeStandUp.sh` is built as a StackScript for the Linode platform and can be used as is. It's been tested on Debian 11 (Bullseye), with previous versions tested on Debian 9 (Stretch) and Debian 10 (Buster).
+* `StandUp.sh` can be used on a Debian VPS and has been tested on Debian 11 (Bullseye), with previous versions tested on Debian 9 (Stretch) and Ubuntu 18.04.
 
 You will use different installation methods depending on which script you use (or if you want to run the installation entirely by hand)
 
@@ -63,7 +63,7 @@ First, copy the `LinodeStandup.sh` script to your Linode:
 1. Copy the complete [LinodeStandup.sh script](https://github.com/BlockchainCommons/Bitcoin-Standup-Scripts/blob/master/Scripts/LinodeStandUp.sh).
 2. Go to the [Stackscripts page](https://cloud.linode.com/stackscripts?type=account) on your Linode account; choose [Create New Stackscript](https://cloud.linode.com/stackscripts/create)
 3. Paste `LinodeStandup.sh` into the "Script" area. Make sure you got it all, from the "#!/bin/bash" to the "exit 1"!
-4. Choose "Debian 10" (Buster) for the "Target Images".
+4. Choose "Debian 11" (Bullseye) for the "Target Images".
 5. Click "Save".
 
 Second, create a node based on the script:
@@ -73,7 +73,7 @@ Second, create a node based on the script:
 8. Choose an Installation Type in your options. This is likely "Mainnet" or "Pruned Mainnet" if you are setting up a node for usage and "Pruned Testnet" if you're just playing around.
 9. Fill in any other advanced options.
 10. Choose a region for where the Linode will be located.
-11. Choose a Linnode plan. Our general experience is that a Linode 8GB is needed to store the whole blockchain if you choose unpruned "Mainnet", while for testnet and the pruned options (and regtest) you'll instead be dependent on memory, where a Linode 4GB will definitely be sufficient, and a Linode 2GB has worked or not on various versions of Bitcoin Core. (If it fails, you'll get out-of-memory errors.)
+11. Choose a Linnode plan. Our general experience is that a Linode 8GB is needed to store the whole blockchain if you choose unpruned "Mainnet", while for testnet and the pruned options (and regtest) you'll instead be dependent on memory, where a Linode 4GB will definitely be sufficient, and a Linode 2GB has worked or not on various versions of Bitcoin Core. (If it fails, you'll get out-of-memory errors.) For deployment you may wish to use "Dedicated CPU", but for everything else a "Shared CPU" should be sufficient.
 12. Enter a root password.
 13. Click "Create".
 
