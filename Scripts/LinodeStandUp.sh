@@ -3,7 +3,7 @@
 #  LinodeStandUp.sh - Installs Bitcore-Core full node (pruned or archival) behind a tor address.
 #  
 #  Created by Peter on 2019-02-12-19.
-#  Updated to install Bitcoin-Core 0.20.1 on 2020-11-18
+#  Updated to install Bitcoin-Core 0.22.0 on 2021-09-21
 
 # DISCLAIMER: It is not a good idea to store large amounts of Bitcoin on a VPS,
 # ideally you should use this as a watch-only wallet. This script is expiramental
@@ -74,7 +74,7 @@ fi
 
 # CURRENT BITCOIN RELEASE:
 # Change as necessary
-export BITCOIN="bitcoin-core-0.20.1"
+export BITCOIN="bitcoin-core-22.0"
 
 # Output stdout and stderr to ~root files
 exec > >(tee -a /standup.log) 2> >(tee -a /standup.log /standup.err >&2)
@@ -256,38 +256,40 @@ export BITCOINPLAIN=`echo $BITCOIN | sed 's/bitcoin-core/bitcoin/'`
 
 sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz -O ~standup/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz
 sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/SHA256SUMS.asc -O ~standup/SHA256SUMS.asc
-sudo -u standup wget https://bitcoin.org/laanwj-releases.asc -O ~standup/laanwj-releases.asc
+sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/SHA256SUMS -O ~standup/SHA256SUMS
+
+sudo -u standup wget https://raw.githubusercontent.com/bitcoin/bitcoin/master/contrib/builder-keys/keys.txt -O ~standup/keys.txt
+sudo -u standup  sh -c 'while read fingerprint keyholder_name; do gpg --keyserver hkps://keys.openpgp.org --recv-keys ${fingerprint}; done < ~standup/keys.txt'
 
 # Verifying Bitcoin: Signature
 echo "$0 - Verifying Bitcoin."
 
-sudo -u standup /usr/bin/gpg --no-tty --import ~standup/laanwj-releases.asc
-export SHASIG=`sudo -u standup /usr/bin/gpg --no-tty --verify ~standup/SHA256SUMS.asc 2>&1 | grep "Good signature"`
-echo "SHASIG is $SHASIG"
+export SHASIG=`sudo -u standup /usr/bin/gpg --verify ~standup/SHA256SUMS.asc ~standup/SHA256SUMS 2>&1 | grep "Good signature"`
+export SHACOUNT=`sudo -u standup /usr/bin/gpg --verify ~standup/SHA256SUMS.asc ~standup/SHA256SUMS 2>&1 | grep "Good signature" | wc -l`
 
 if [ "$SHASIG" ]
 then
 
-    echo "$0 - VERIFICATION SUCCESS / SIG: $SHASIG"
+    echo "$0 - SIG VERIFICATION SUCCESS: $SHACOUNT GOOD SIGNATURES FOUND."
+    echo "$SHASIG"
     
 else
 
-    (>&2 echo "$0 - VERIFICATION ERROR: Signature for Bitcoin did not verify!")
+    (>&2 echo "$0 - SIG VERIFICATION ERROR: No verified signatures for Bitcoin!")
     
 fi
 
 # Verify Bitcoin: SHA
-export TARSHA256=`/usr/bin/sha256sum ~standup/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz | awk '{print $1}'`
-export EXPECTEDSHA256=`cat ~standup/SHA256SUMS.asc | grep $BITCOINPLAIN-x86_64-linux-gnu.tar.gz | awk '{print $1}'`
+export SHACHECK=`sudo -u standup sh -c 'cd ~standup; /usr/bin/sha256sum -c --ignore-missing < ~standup/SHA256SUMS 2>&1 | grep "OK"'`
 
-if [[ "$TARSHA256" == "$EXPECTEDSHA256" ]]
+if [ "$SHACHECK" ]
 then
 
-   echo "$0 - VERIFICATION SUCCESS / SHA: $TARSHA256"
+   echo "$0 - SHA VERIFICATION SUCCESS / SHA: $SHACHECK"
    
 else
 
-    (>&2 echo "$0 - VERIFICATION ERROR: SHA for Bitcoin did not match!")
+    (>&2 echo "$0 - SHA VERIFICATION ERROR: SHA for Bitcoin did not match!")
     
 fi
 
