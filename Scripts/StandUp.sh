@@ -521,7 +521,7 @@ then
     USE_NODE='false'
 fi
 
-if [[ "$USE_CYPHERPUNKPAY" = "YES" ]]
+if [[ "$USE_CYPHERPUNKPAY" == "YES" ]]
 then
 
     echo "$0 - Bonus: Installing Cypherpunkpay"
