@@ -537,7 +537,7 @@ then
                 s/btc_mainnet_node_rpc_user = bitcoin/btc_mainnet_node_rpc_user = StandUp/;
                 s/btc_mainnet_node_rpc_password = secret/btc_mainnet_node_rpc_password = $RPCPASSWORD/;
                 s/use_tor = false/use_tor = true/;
-                s/donations_cause =.*$/donations_cause = $CAUSE/" /etc/cypherpunkpay.conf
+                s/donations_cause =.*$/donations_cause = $CPPCAUSE/" /etc/cypherpunkpay.conf
 
 
     sudo systemctl enable cypherpunkpay
