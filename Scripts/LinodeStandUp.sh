@@ -52,7 +52,7 @@
 # FQDN=
 # <UDF name="torV3AuthKey" Label="x25519 Public Key" default="" example="descriptor:x25519:JBFKJBEUF72387RH2UHDJFHIUWH47R72UH3I2UHD" optional="true"/>
 # PUBKEY=
-# <UDF name="btctype" label="Installation Type" oneOf="Mainnet,Pruned Mainnet,Testnet,Pruned Testnet,Private Regtest" default="Puned Testnet" example="Bitcoin node type" optional="true"/>
+# <UDF name="btctype" label="Installation Type" oneOf="Mainnet,Pruned Mainnet,Testnet,Pruned Testnet,Private Regtest" default="Pruned Testnet" example="Bitcoin node type" optional="true"/>
 # BTCTYPE=
 # <UDF name="userpassword" label="StandUp Password" example="Password to for the standup non-privileged account." />
 # USERPASSWORD=
