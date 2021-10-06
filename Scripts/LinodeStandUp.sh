@@ -66,9 +66,9 @@
 # USE_CYPHERPUNKPAY=
 # <UDF name="xpub" label="XPUB/YPUB/ZPUB from your new CypherpunkPay wallet" default="" example="Create a brand new wallet and export your xpub that will look like this: xpub5SLqN2bLY4WeYfrqh3V99Wn5UF7wqQhuSAnCnycZd8viZ1SHV4ABrG2joGZrezpR" optional="true"/>
 # XPUB=
-# <UDF name="cypherpunkpay_lite" label="Use Lite Version of CypherPunkPay" oneOf="YES, NO" default="YES" optional="true"/>
+# <UDF name="cypherpunkpay_lite" label="" oneOf="YES, NO" default="YES" optional="true"/>
 # CPPLITE=
-# <UDF name="cypherpunkpay_cause" label="Title of donations page" example="Please help Satoshi fund his digital cash project!" optional="true"/>
+# <UDF name="cypherpunkpay_cause" label="Title of donations page" default="" example="Please help Satoshi fund his digital cash project!" optional="true"/>
 # CPPCAUSE=
 
 # Force check for root, if you are not logged in as root then the script will not execute
