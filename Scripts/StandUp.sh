@@ -76,9 +76,15 @@
 # If you do not want to add any arguments and run everything as per the defaults simply run:
 # ./standup.sh
 
+# To run Cypherpunk Pay:
 # Set USE_CYPHERPUNKPAY="YES" before running standup.sh if you want to install CypherpunkPay
 # Set CPPLITE='YES' before running standup.sh if you do not want to use a full node for CypherpunkPay. It will instead download blocks over Tor from randomised block explorers.
 # Set CYPHERPUNKPAY_CAUSE to something like "Please help Satoshi fund his digital cash project!". This message will appear on your donation's page.
+
+# You can uncomment and edit the following lines:
+# USE_CYPHERPUNKPAY="YES"
+# CPPLITE="YES"
+# CYPHERPUNKPAY_CAUSE="Donate to Us!"
 
 # For Tor V3 client authentication (optional), you can run standup.sh like:
 # ./standup.sh "descriptor:x25519:NWJNEFU487H2BI3JFNKJENFKJWI3"
