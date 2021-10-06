@@ -514,7 +514,7 @@ echo "$0 - You can manually start Bitcoin with: sudo systemctl start bitcoind.se
 
 # Install CypherpunkPay
 # Ref. https://cypherpunkpay.org/installation/quick-start/
-if [[ "$USE_CYPHERPUNKPAY" = "YES" ]]
+if [[ "$USE_CYPHERPUNKPAY" == "YES" ]]
 then
     echo "$0 - Bonus: Installing Cypherpunkpay"
     wget -qO - https://deb.cypherpunkpay.org/cypherpunkpay-package-signer.asc | sudo apt-key add -
