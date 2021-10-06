@@ -523,12 +523,15 @@ fi
 
 if [[ "$USE_CYPHERPUNKPAY" = "YES" ]]
 then
+
+    echo "$0 - Bonus: Installing Cypherpunkpay"
     wget -qO - https://deb.cypherpunkpay.org/cypherpunkpay-package-signer.asc | sudo apt-key add -
 
     echo 'deb [arch=amd64] https://deb.cypherpunkpay.org/apt/ubuntu/ focal main' | sudo tee /etc/apt/sources.list.d/cypherpunkpay.list
 
     sudo apt-get update -y && sudo apt-get install -y cypherpunkpay
 
+    echo "$0 - Editing Cypherpunkpay Config"
     sed -i -e  "s/listen = 127.0.0.1:8080/listen = 127.0.0.1:8081/;
                 s/btc_network = testnet/btc_network = mainnet/;
                 s/# btc_mainnet_account_xpub = REPLACE_ME_WITH_BTC_MAINNET_ACCOUNT_XPUB/btc_mainnet_account_xpub = $XPUB/;
