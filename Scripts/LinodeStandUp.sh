@@ -516,6 +516,7 @@ echo "$0 - You can manually start Bitcoin with: sudo systemctl start bitcoind.se
 # Ref. https://cypherpunkpay.org/installation/quick-start/
 if [[ "$USE_CYPHERPUNKPAY" = "YES" ]]
 then
+    echo "$0 - Bonus: Installing Cypherpunkpay"
     wget -qO - https://deb.cypherpunkpay.org/cypherpunkpay-package-signer.asc | sudo apt-key add -
 
     echo 'deb [arch=amd64] https://deb.cypherpunkpay.org/apt/ubuntu/ focal main' | sudo tee /etc/apt/sources.list.d/cypherpunkpay.list
@@ -528,6 +529,7 @@ then
         USE_NODE='false'
     fi
 
+    echo "$0 - Editing Cypherpunkpay Conf"
     sed -i -e  "s/listen = 127.0.0.1:8080/listen = 127.0.0.1:8081/;
                 s/btc_network = testnet/btc_network = mainnet/;
                 s/# btc_mainnet_account_xpub = REPLACE_ME_WITH_BTC_MAINNET_ACCOUNT_XPUB/btc_mainnet_account_xpub = $XPUB/;
