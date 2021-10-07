@@ -11,9 +11,16 @@ For more information on *Bitcoin-Standup*:
 2. [Why Run a Full Node?](https://github.com/BlockchainCommons/Gordian/blob/master/Docs/Why-Full.md) details why you would want to run a full node in the first place.
 3. [Security for Bitcoin-Standup](https://github.com/BlockchainCommons/Gordian/blob/master/Docs/Security.md) offers notes on ensuring the security of your *Bitcoin-Standup* node.
 
-## Status — Work-in-Progress
+## Status — Work-in-Progress (0.8)
 
 The *Bitcoin-Standup-Scripts* are updated every year or two for the newest versions of Bitcoin and Debian, and so remain a work-in-progress. We're also working toward improving the modularity of various plug-ins that could be installed.
+
+## Version History
+
+### 0.8.0, October 6, 2021
+
+* Added Cypherpunkpay Installation, courtesy of [@nochiel](https://github.com/nochiel) and sponsorship from [HRF](https://hrf.org/).
+* Updated scripts to Bitcoin Core 22.0
 
 ## Installation Instructions
 
@@ -103,6 +110,32 @@ By default the scripts set up a pruned testnet node and a Tor V3 hidden service 
    rm -R -f btcstandup.uri
    rm -R -f qrcode.png
    ```
+
+## Installation Instructions Cypherpunkpay
+
+Version 0.8.0 of the Bitcoin Standup Scripts added support for [Cypherpunkpay installation](https://cypherpunkpay.org/). Cypherpunkpay may be installed by inputting four variables:
+
+* USECYPHERPUNKPAY ; set to YES
+* CPPLITE ; for a lighter installation, usually set to YES
+* XPUB ; the xpub for the wallet where you will receive your funds
+* CPPCAUSE ; the title for your Cyperpunkpay donations
+
+If you use the Linode Stackscript, you will be able to set these variables on the Stackscript deployment page; if you use the `.sh` scripts, you must find these lines in the script, uncomment them, and edit them as appropriate (particularly the `XPUB` and `CPPCAUSE` variables).
+
+After running the script, you can verify that Cypherpunkpay is running with `systemctl status cypherpunkpay`:
+```
+# systemctl status cypherpunkpay
+● cypherpunkpay.service - CypherpunkPay
+     Loaded: loaded (/lib/systemd/system/cypherpunkpay.service; enabled; vendor preset: enabled)
+     Active: active (running) since Thu 2021-10-07 00:49:18 UTC; 1min 28s ago
+   Main PID: 9136 (cypherpunkpay)
+      Tasks: 37 (limit: 4680)
+     Memory: 63.6M
+        CPU: 1.404s
+     CGroup: /system.slice/cypherpunkpay.service
+             └─9136 /opt/venvs/cypherpunkpay/bin/python /usr/bin/cypherpunkpay
+```
+Once Cypherpunkpay is running, you will need to [integrate it into your website](https://cypherpunkpay.org/merchant/quick-start/).
 
 ## Financial Support
 
