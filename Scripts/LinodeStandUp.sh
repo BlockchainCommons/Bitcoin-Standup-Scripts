@@ -46,29 +46,29 @@
 # This block defines the variables the user of the script needs to input
 # when deploying using this script.
 #
+# <UDF name="userpassword" label="StandUp Password" example="Password to for the standup non-privileged account." />
+# USERPASSWORD=
+# <UDF name="btctype" label="Installation Type" oneOf="Mainnet,Pruned Mainnet,Testnet,Pruned Testnet,Private Regtest" default="Pruned Testnet" example="Bitcoin node type" optional="true"/>
+# BTCTYPE=
 # <UDF name="hostname" label="Short Hostname" example="Example: bitcoincore-testnet-pruned"/>
 # HOSTNAME=
 # <UDF name="fqdn" label="Fully Qualified Hostname" example="Example: bitcoincore-testnet-pruned.local or bitcoincore-testnet-pruned.domain.com"/>
 # FQDN=
-# <UDF name="torV3AuthKey" Label="x25519 Public Key" default="" example="descriptor:x25519:JBFKJBEUF72387RH2UHDJFHIUWH47R72UH3I2UHD" optional="true"/>
-# PUBKEY=
-# <UDF name="btctype" label="Installation Type" oneOf="Mainnet,Pruned Mainnet,Testnet,Pruned Testnet,Private Regtest" default="Pruned Testnet" example="Bitcoin node type" optional="true"/>
-# BTCTYPE=
-# <UDF name="userpassword" label="StandUp Password" example="Password to for the standup non-privileged account." />
-# USERPASSWORD=
-# <UDF name="ssh_key" label="SSH Key" default="" example="Key for automated logins to standup non-privileged account." optional="true" />
-# SSH_KEY=
-# <UDF name="sys_ssh_ip" label="SSH-Allowed IPs" default="" example="Comma separated list of IPs that can use SSH" optional="true" />
-# SYS_SSH_IP=
 # <UDF name="region" label="Timezone" oneOf="Asia/Singapore,America/Los_Angeles" default="America/Los_Angeles" example="Servers location" optional="false"/>
 # REGION=
-# <UDF name="use_cypherpunkpay" label="Install CypherPunkPay" oneOf="YES,NO" default="NO" optional="true"/>
+# <UDF name="torV3AuthKey" Label="Security: x25519 Public Key" default="" example="Example: descriptor:x25519:JBFKJBEUF72387RH2UHDJFHIUWH47R72UH3I2UHD" optional="true"/>
+# PUBKEY=
+# <UDF name="ssh_key" label="Security: SSH Key" default="" example="Key for automated logins to standup non-privileged account." optional="true" />
+# SSH_KEY=
+# <UDF name="sys_ssh_ip" label="Security: SSH-Allowed IPs" default="" example="Comma separated list of IPs that can use SSH" optional="true" />
+# SYS_SSH_IP=
+# <UDF name="use_cypherpunkpay" label="Cypherpunkpay: Install CypherPunkPay" oneOf="YES,NO" default="NO" optional="true"/>
 # USE_CYPHERPUNKPAY=
-# <UDF name="xpub" label="XPUB/YPUB/ZPUB from your new CypherpunkPay wallet" default="" example="Create a brand new wallet and export your xpub that will look like this: xpub5SLqN2bLY4WeYfrqh3V99Wn5UF7wqQhuSAnCnycZd8viZ1SHV4ABrG2joGZrezpR" optional="true"/>
-# XPUB=
-# <UDF name="cpplite" label="Use Lite Version of Cypherpunkpay" oneOf="YES, NO" default="YES" optional="true"/>
+# <UDF name="cpplite" label="Cypherpunkpay: Use Lite Version of Cypherpunkpay" oneOf="YES, NO" default="YES" optional="true"/>
 # CPPLITE=
-# <UDF name="cppcause" label="Title of donations page" default="" example="Please help Satoshi fund his digital cash project!" optional="true"/>
+# <UDF name="xpub" label="Cypherpunkpay: Wallet xpub" default="" example="Example: xpub5SLqN2bLY4WeYfrqh3V99Wn5UF7wqQhuSAnCnycZd8viZ1SHV4ABrG2joGZrezpR (should be from a new wallet)" optional="true"/>
+# XPUB=
+# <UDF name="cppcause" label="Cypherpunkpay: Donations Page Title" default="" example="Example: Please help Satoshi fund his digital cash project!" optional="true"/>
 # CPPCAUSE=
 
 # Force check for root, if you are not logged in as root then the script will not execute
@@ -494,24 +494,6 @@ sudo qrencode -m 10 -o qrcode.png "$QR"
 # Add uri to /standup.uri
 echo $QR | sudo tee -a /standup.uri
 
-
-# Display the uri text
-
-echo "$0 - This is your btcstandup:// uri to convert into a QR which can be scanned with FullyNoded to connect remotely:"
-
-echo "$0 - **************************************************************************************************************"
-
-
-echo $QR
-
-
-echo "$0 - **************************************************************************************************************"
-
-
-echo "$0 - Bitcoin is setup as a service and will automatically start if your VPS reboots and so is Tor"
-echo "$0 - You can manually stop Bitcoin with: sudo systemctl stop bitcoind.service"
-echo "$0 - You can manually start Bitcoin with: sudo systemctl start bitcoind.service"
-
 # Install CypherpunkPay
 # Ref. https://cypherpunkpay.org/installation/quick-start/
 if [[ "$USE_CYPHERPUNKPAY" == "YES" ]]
@@ -540,9 +522,27 @@ then
                 s/donations_cause =.*$/donations_cause = $CPPCAUSE/" /etc/cypherpunkpay.conf
 
 
+    echo "$0 - Starting Cypherpunkpay"
     sudo systemctl enable cypherpunkpay
     sudo systemctl start cypherpunkpay
 fi
+
+# Display the uri text
+
+echo "$0 - This is your btcstandup:// uri to convert into a QR which can be scanned with FullyNoded to connect remotely:"
+
+echo "$0 - **************************************************************************************************************"
+
+
+echo $QR
+
+
+echo "$0 - **************************************************************************************************************"
+
+
+echo "$0 - Bitcoin is setup as a service and will automatically start if your VPS reboots and so is Tor"
+echo "$0 - You can manually stop Bitcoin with: sudo systemctl stop bitcoind.service"
+echo "$0 - You can manually start Bitcoin with: sudo systemctl start bitcoind.service"
 
 # Finished, exit script
 exit 1
