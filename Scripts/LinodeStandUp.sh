@@ -52,7 +52,7 @@
 # FQDN=
 # <UDF name="torV3AuthKey" Label="x25519 Public Key" default="" example="descriptor:x25519:JBFKJBEUF72387RH2UHDJFHIUWH47R72UH3I2UHD" optional="true"/>
 # PUBKEY=
-# <UDF name="btctype" label="Installation Type" oneOf="Mainnet,Pruned Mainnet,Testnet,Pruned Testnet,Private Regtest" default="Puned Testnet" example="Bitcoin node type" optional="true"/>
+# <UDF name="btctype" label="Installation Type" oneOf="Mainnet,Pruned Mainnet,Testnet,Pruned Testnet,Private Regtest" default="Pruned Testnet" example="Bitcoin node type" optional="true"/>
 # BTCTYPE=
 # <UDF name="userpassword" label="StandUp Password" example="Password to for the standup non-privileged account." />
 # USERPASSWORD=
@@ -62,6 +62,14 @@
 # SYS_SSH_IP=
 # <UDF name="region" label="Timezone" oneOf="Asia/Singapore,America/Los_Angeles" default="America/Los_Angeles" example="Servers location" optional="false"/>
 # REGION=
+# <UDF name="use_cypherpunkpay" label="Install CypherPunkPay" oneOf="YES,NO" default="NO" optional="true"/>
+# USE_CYPHERPUNKPAY=
+# <UDF name="xpub" label="XPUB/YPUB/ZPUB from your new CypherpunkPay wallet" default="" example="Create a brand new wallet and export your xpub that will look like this: xpub5SLqN2bLY4WeYfrqh3V99Wn5UF7wqQhuSAnCnycZd8viZ1SHV4ABrG2joGZrezpR" optional="true"/>
+# XPUB=
+# <UDF name="cpplite" label="Use Lite Version of Cypherpunkpay" oneOf="YES, NO" default="YES" optional="true"/>
+# CPPLITE=
+# <UDF name="cppcause" label="Title of donations page" default="" example="Please help Satoshi fund his digital cash project!" optional="true"/>
+# CPPCAUSE=
 
 # Force check for root, if you are not logged in as root then the script will not execute
 if ! [ "$(id -u)" = 0 ]
@@ -209,7 +217,12 @@ HiddenServiceDir \/var\/lib\/tor\/standup\/\
 HiddenServiceVersion 3\
 HiddenServicePort 18332 127.0.0.1:18332\
 HiddenServicePort 18443 127.0.0.1:18443\
-HiddenServicePort 8332 127.0.0.1:8332/g' /etc/tor/torrc
+HiddenServicePort 8332 127.0.0.1:8332\
+\
+HiddenServiceDir \/var/\lib/\tor/\cypherpunkpay\
+HiddenServiceVersion 3\
+HiddenServicePort 8081 127.0.0.1:8081\
+/g' /etc/tor/torrc
 mkdir /var/lib/tor/standup
 chown -R debian-tor:debian-tor /var/lib/tor/standup
 chmod 700 /var/lib/tor/standup
@@ -498,6 +511,38 @@ echo "$0 - *********************************************************************
 echo "$0 - Bitcoin is setup as a service and will automatically start if your VPS reboots and so is Tor"
 echo "$0 - You can manually stop Bitcoin with: sudo systemctl stop bitcoind.service"
 echo "$0 - You can manually start Bitcoin with: sudo systemctl start bitcoind.service"
+
+# Install CypherpunkPay
+# Ref. https://cypherpunkpay.org/installation/quick-start/
+if [[ "$USE_CYPHERPUNKPAY" == "YES" ]]
+then
+    echo "$0 - Bonus: Installing Cypherpunkpay"
+    wget -qO - https://deb.cypherpunkpay.org/cypherpunkpay-package-signer.asc | sudo apt-key add -
+
+    echo 'deb [arch=amd64] https://deb.cypherpunkpay.org/apt/ubuntu/ focal main' | sudo tee /etc/apt/sources.list.d/cypherpunkpay.list
+
+    sudo apt-get update -y && sudo apt-get install -y cypherpunkpay
+
+    USE_NODE='true'
+    if [[ "$CPPLITE" == 'YES' ]]
+    then
+        USE_NODE='false'
+    fi
+
+    echo "$0 - Editing Cypherpunkpay Conf"
+    sed -i -e  "s/listen = 127.0.0.1:8080/listen = 127.0.0.1:8081/;
+                s/btc_network = testnet/btc_network = mainnet/;
+                s/# btc_mainnet_account_xpub = REPLACE_ME_WITH_BTC_MAINNET_ACCOUNT_XPUB/btc_mainnet_account_xpub = $XPUB/;
+                s/btc_mainnet_node_enabled = false/btc_mainnet_node_enabled = $USE_NODE/;
+                s/btc_mainnet_node_rpc_user = bitcoin/btc_mainnet_node_rpc_user = StandUp/;
+                s/btc_mainnet_node_rpc_password = secret/btc_mainnet_node_rpc_password = $RPCPASSWORD/;
+                s/use_tor = false/use_tor = true/;
+                s/donations_cause =.*$/donations_cause = $CPPCAUSE/" /etc/cypherpunkpay.conf
+
+
+    sudo systemctl enable cypherpunkpay
+    sudo systemctl start cypherpunkpay
+fi
 
 # Finished, exit script
 exit 1
