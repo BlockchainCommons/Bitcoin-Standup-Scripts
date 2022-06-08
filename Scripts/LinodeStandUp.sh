@@ -3,7 +3,7 @@
 #  LinodeStandUp.sh - Installs Bitcore-Core full node (pruned or archival) behind a tor address.
 #  
 #  Created by Peter on 2019-02-12-19.
-#  Updated to install Bitcoin-Core 23.0 on 2022-06-08
+#  Updated to install Bitcoin-Core 0.22.0 on 2021-09-21
 
 # DISCLAIMER: It is not a good idea to store large amounts of Bitcoin on a VPS,
 # ideally you should use this as a watch-only wallet. This script is expiramental
@@ -82,7 +82,7 @@ fi
 
 # CURRENT BITCOIN RELEASE:
 # Change as necessary
-export BITCOIN="bitcoin-core-23.0"
+export BITCOIN="bitcoin-core-22.0"
 
 # Output stdout and stderr to ~root files
 exec > >(tee -a /standup.log) 2> >(tee -a /standup.log /standup.err >&2)
@@ -219,7 +219,7 @@ HiddenServicePort 18332 127.0.0.1:18332\
 HiddenServicePort 18443 127.0.0.1:18443\
 HiddenServicePort 8332 127.0.0.1:8332\
 \
-HiddenServiceDir \/var\/lib\/tor\/cypherpunkpay\
+HiddenServiceDir \/var/\lib/\tor/\cypherpunkpay\
 HiddenServiceVersion 3\
 HiddenServicePort 8081 127.0.0.1:8081\
 /g' /etc/tor/torrc
