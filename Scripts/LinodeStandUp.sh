@@ -82,7 +82,7 @@ fi
 
 # CURRENT BITCOIN RELEASE:
 # Change as necessary
-export BITCOIN="bitcoin-core-23.0"
+export BITCOIN="bitcoin-core-24.0.1"
 
 # Output stdout and stderr to ~root files
 exec > >(tee -a /standup.log) 2> >(tee -a /standup.log /standup.err >&2)
