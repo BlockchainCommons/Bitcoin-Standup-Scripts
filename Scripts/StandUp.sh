@@ -302,14 +302,16 @@ echo "$0 - Downloading Bitcoin; this will also take a while!"
 
 # CURRENT BITCOIN RELEASE:
 # Change as necessary
-export BITCOIN="bitcoin-core-23.0"
+export BITCOIN="bitcoin-core-25.0"
 export BITCOINPLAIN=`echo $BITCOIN | sed 's/bitcoin-core/bitcoin/'`
 
-sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz -O ~standup/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz
-sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/SHA256SUMS.asc -O ~standup/SHA256SUMS.asc
-sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/SHA256SUMS -O ~standup/SHA256SUMS
+sudo -u standup mkdir ~standup/logs
 
-sudo -u standup wget https://raw.githubusercontent.com/bitcoin/bitcoin/23.x/contrib/builder-keys/keys.txt -O ~standup/keys.txt
+sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz -O ~standup/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz -o ~standup/logs/wget.log
+sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/SHA256SUMS.asc -O ~standup/SHA256SUMS.asc -o ~standup/logs/wget.log
+sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/SHA256SUMS -O ~standup/SHA256SUMS -o ~standup/logs/wget.log
+
+sudo -u standup wget https://raw.githubusercontent.com/bitcoin/bitcoin/25.x/contrib/builder-keys/keys.txt -O ~standup/keys.txt -o ~standup/logs/wget.log
 sudo -u standup  sh -c 'while read fingerprint keyholder_name; do gpg --keyserver hkps://keys.openpgp.org --recv-keys ${fingerprint}; done < ~standup/keys.txt'
 
 # Verifying Bitcoin: Signature
