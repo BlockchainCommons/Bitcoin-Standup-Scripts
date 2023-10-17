@@ -26,8 +26,8 @@ The *Bitcoin-Standup-Scripts* are updated every year or two for the newest versi
 
 There are two linux based StandUp scripts; `StandUp.sh` and `LinodeStandUp.sh`.
 
-* `LinodeStandUp.sh` is built as a StackScript for the Linode platform and can be used as is. It's been tested on Debian 11 (Bullseye), with previous versions tested on Debian 9 (Stretch) and Debian 10 (Buster).
-* `StandUp.sh` can be used on a Debian VPS and has been tested on Debian 11 (Bullseye), with previous versions tested on Debian 9 (Stretch) and Ubuntu 18.04.
+* `LinodeStandUp.sh` is built as a StackScript for the Linode platform and can be used as is. It's been tested on Debian 12 (Bookworm), with previous versions tested on Debian 9 (Stretch), Debian 10 (Buster) and Debian 11 (Bullseye).
+* `StandUp.sh` can be used on a Debian VPS and has been tested on Debian 12 (Bookworm), with previous versions tested on Debian 9 (Stretch), Debian 11 (Bullseye) and Ubuntu 18.04.
 
 You will use different installation methods depending on which script you use (or if you want to run the installation entirely by hand)
 
@@ -70,7 +70,7 @@ First, copy the `LinodeStandup.sh` script to your Linode:
 1. Copy the complete [LinodeStandup.sh script](https://github.com/BlockchainCommons/Bitcoin-Standup-Scripts/blob/master/Scripts/LinodeStandUp.sh).
 2. Go to the [Stackscripts page](https://cloud.linode.com/stackscripts?type=account) on your Linode account; choose [Create New Stackscript](https://cloud.linode.com/stackscripts/create)
 3. Paste `LinodeStandup.sh` into the "Script" area. Make sure you got it all, from the "#!/bin/bash" to the "exit 1"!
-4. Choose "Debian 11" (Bullseye) for the "Target Images".
+4. Choose "Debian 12" (Bookworm) for the "Target Images".
 5. Click "Save".
 
 Second, create a node based on the script:
