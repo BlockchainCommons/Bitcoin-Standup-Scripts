@@ -305,7 +305,7 @@ echo "$0 - Downloading Bitcoin; this will also take a while!"
 
 # CURRENT BITCOIN RELEASE:
 # Change as necessary
-export BITCOIN="bitcoin-core-23.0"
+export BITCOIN="bitcoin-core-25.0"
 export BITCOINPLAIN=`echo $BITCOIN | sed 's/bitcoin-core/bitcoin/'`
 
 sudo -u standup mkdir ~standup/.logs
@@ -315,7 +315,7 @@ sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/SHA256SUMS.asc -O ~sta
 sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/SHA256SUMS -O ~standup/SHA256SUMS -a ~standup/.logs/wget
 
 sudo -u standup git clone https://github.com/bitcoin-core/guix.sigs ~standup/guix.sigs
-sudo -u standup  gpg --import ~standup/guix.sigs/builder-keys/*
+sudo -u standup gpg --import ~standup/guix.sigs/builder-keys/*
 
 cat ~standup/.logs/wget >> /standup.log
 cat ~standup/.logs/wget >> /standup.err
