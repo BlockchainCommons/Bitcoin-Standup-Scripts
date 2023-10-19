@@ -138,6 +138,9 @@ apt-get install gnupg -y
 # Install dirmngr
 apt-get install dirmngr
 
+# Install git
+apt-get install git
+
 # Set system to automatically update
 echo "unattended-upgrades unattended-upgrades/enable_auto_updates boolean true" | debconf-set-selections
 apt-get -y install unattended-upgrades
@@ -311,8 +314,8 @@ sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/$BITCOINPLAIN-x86_64-l
 sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/SHA256SUMS.asc -O ~standup/SHA256SUMS.asc -a ~standup/.logs/wget
 sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/SHA256SUMS -O ~standup/SHA256SUMS -a ~standup/.logs/wget
 
-sudo -u standup wget https://raw.githubusercontent.com/bitcoin/bitcoin/23.x/contrib/builder-keys/keys.txt -O ~standup/keys.txt -a ~standup/.logs/wget
-sudo -u standup  sh -c 'while read fingerprint keyholder_name; do gpg --keyserver hkps://keys.openpgp.org --recv-keys ${fingerprint}; done < ~standup/keys.txt'
+sudo -u standup git clone https://github.com/bitcoin-core/guix.sigs ~standup/guix.sigs
+sudo -u standup  gpg --import ~standup/guix.sigs/builder-keys/*
 
 cat ~standup/.logs/wget >> /standup.log
 cat ~standup/.logs/wget >> /standup.err
