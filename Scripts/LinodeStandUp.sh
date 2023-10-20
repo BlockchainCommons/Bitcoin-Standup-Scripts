@@ -277,7 +277,7 @@ sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/SHA256SUMS.asc -O ~sta
 sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/SHA256SUMS -O ~standup/SHA256SUMS -a ~standup/.logs/wget
 
 sudo -u standup git clone https://github.com/bitcoin-core/guix.sigs ~standup/guix.sigs
-sudo -u standup gpg --import ~standup/guix.sig
+sudo -u standup gpg --import ~standup/guix.sigs/builder-keys/*
 
 cat ~standup/.logs/wget >> /standup.log
 cat ~standup/.logs/wget >> /standup.err
