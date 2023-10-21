@@ -138,8 +138,8 @@ apt-get install gnupg -y
 # Install dirmngr
 apt-get install dirmngr
 
-# Install git
-apt-get install git
+# Install unzip
+apt-get install unzip
 
 # Set system to automatically update
 echo "unattended-upgrades unattended-upgrades/enable_auto_updates boolean true" | debconf-set-selections
@@ -314,8 +314,9 @@ sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/$BITCOINPLAIN-x86_64-l
 sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/SHA256SUMS.asc -O ~standup/SHA256SUMS.asc -a ~standup/.logs/wget
 sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/SHA256SUMS -O ~standup/SHA256SUMS -a ~standup/.logs/wget
 
-sudo -u standup git clone https://github.com/bitcoin-core/guix.sigs ~standup/guix.sigs
-sudo -u standup gpg --import ~standup/guix.sigs/builder-keys/*
+sudo -u standup wget https://github.com/bitcoin-core/guix.sigs/archive/refs/heads/main.zip -O ~standup/guix.sigs-main.zip
+sudo -u standup unzip ~standup/guix.sigs-main.zip
+sudo -u standup gpg --import ~standup/guix.sigs-main/builder-keys/*
 
 cat ~standup/.logs/wget >> /standup.log
 cat ~standup/.logs/wget >> /standup.err
