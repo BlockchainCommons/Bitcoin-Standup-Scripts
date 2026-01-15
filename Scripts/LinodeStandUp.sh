@@ -3,7 +3,7 @@
 #  LinodeStandUp.sh - Installs Bitcore-Core full node (pruned or archival) behind a tor address.
 #  
 #  Created by Peter on 2019-02-12-19.
-#  Updated to install Bitcoin-Core 23.0 on 2022-06-08
+#  Updated to install Bitcoin-Core 30.2 on 2026-01-16
 
 # DISCLAIMER: It is not a good idea to store large amounts of Bitcoin on a VPS,
 # ideally you should use this as a watch-only wallet. This script is expiramental
@@ -56,9 +56,9 @@
 # FQDN=
 # <UDF name="region" label="Timezone" oneOf="Asia/Singapore,America/Los_Angeles" default="America/Los_Angeles" example="Servers location" optional="false"/>
 # REGION=
-# <UDF name="torV3AuthKey" Label="Security: x25519 Public Key" default="" example="Example: descriptor:x25519:JBFKJBEUF72387RH2UHDJFHIUWH47R72UH3I2UHD" optional="true"/>
+# <UDF name="torV3AuthKey" Label="Security: Tor x25519 Public Key" default="" example="Example: descriptor:x25519:JBFKJBEUF72387RH2UHDJFHIUWH47R72UH3I2UHD" optional="true"/>
 # PUBKEY=
-# <UDF name="ssh_key" label="Security: SSH Key" default="" example="Key for automated logins to standup non-privileged account." optional="true" />
+# <UDF name="ssh_key" label="Security: Standup SSH Key" default="" example="Key for automated logins to standup non-privileged account." optional="true" />
 # SSH_KEY=
 # <UDF name="sys_ssh_ip" label="Security: SSH-Allowed IPs" default="" example="Comma separated list of IPs that can use SSH" optional="true" />
 # SYS_SSH_IP=
@@ -82,7 +82,7 @@ fi
 
 # CURRENT BITCOIN RELEASE:
 # Change as necessary
-export BITCOIN="bitcoin-core-23.0"
+export BITCOIN="bitcoin-core-30.2"
 
 # Output stdout and stderr to ~root files
 exec > >(tee -a /standup.log) 2> >(tee -a /standup.log /standup.err >&2)
@@ -125,24 +125,28 @@ cp /usr/share/zoneinfo/${REGION} /etc/localtime
 echo "$0 - Starting Debian updates; this will take a while!"
 
 # Make sure all packages are up-to-date
-apt-get update -y
-apt-get upgrade -y
-apt-get dist-upgrade -y
+apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" update
+apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade
+apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" dist-upgrade
 
-# Install haveged (a random number generator)
-apt-get install haveged -y
+# Install haveged (a random number generator) & xxd (used for same purposes
+apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install haveged
+apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install xxd
 
 # Install GPG
-apt-get install gnupg -y
+apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install gnupg
+
+# Install Git (for checking signatures)
+apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install git
 
 # Set system to automatically update
 echo "unattended-upgrades unattended-upgrades/enable_auto_updates boolean true" | debconf-set-selections
-apt-get -y install unattended-upgrades
+apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install unattended-upgrades
 
 echo "$0 - Updated Debian Packages"
 
 # get uncomplicated firewall and deny all incoming connections except SSH
-sudo apt-get install ufw -y
+apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install ufw
 ufw allow ssh
 ufw enable
 
@@ -189,24 +193,25 @@ fi
 # Download tor
 
 #  To use source lines with https:// in /etc/apt/sources.list the apt-transport-https package is required. Install it with:
-sudo apt install apt-transport-https -y
+#sudo apt install apt-transport-https -y
 
 # We need to set up our package repository before you can fetch Tor. First, you need to figure out the name of your distribution:
-DEBIAN_VERSION=$(lsb_release -c | awk '{ print $2 }')
+#DEBIAN_VERSION=$(lsb_release -c | awk '{ print $2 }')
 
 # You need to add the following entries to /etc/apt/sources.list:
-cat >> /etc/apt/sources.list << EOF
-deb https://deb.torproject.org/torproject.org $DEBIAN_VERSION main
-deb-src https://deb.torproject.org/torproject.org $DEBIAN_VERSION main
-EOF
+#cat >> /etc/apt/sources.list << EOF
+#deb https://deb.torproject.org/torproject.org $DEBIAN_VERSION main
+#deb-src https://deb.torproject.org/torproject.org $DEBIAN_VERSION main
+#EOF
 
 # Then add the gpg key used to sign the packages by running:
-sudo curl https://deb.torproject.org/torproject.org/A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc | gpg --import
-sudo gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | apt-key add -
+#sudo curl https://deb.torproject.org/torproject.org/A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc | gpg --import
+#sudo gpg --export A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89 | apt-key add -
 
 # Update system, install and run tor as a service
-sudo apt update -y
-sudo apt install tor deb.torproject.org-keyring -y
+#sudo apt update -y
+#sudo apt install tor deb.torproject.org-keyring -y
+apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install tor
 
 # Setup hidden service
 sed -i -e 's/#ControlPort 9051/ControlPort 9051/g' /etc/tor/torrc
@@ -228,10 +233,10 @@ chown -R debian-tor:debian-tor /var/lib/tor/standup
 chmod 700 /var/lib/tor/standup
 
 # Add standup to the tor group so that the tor authentication cookie can be read by bitcoind
-sudo usermod -a -G debian-tor standup
+usermod -a -G debian-tor standup
 
 # Restart tor to create the HiddenServiceDir
-sudo systemctl restart tor.service
+systemctl restart tor.service
 
 
 # add V3 authorized_clients public key if one exists
@@ -242,13 +247,13 @@ then
   mkdir /var/lib/tor/standup/authorized_clients
 
   # Create the file for the pubkey
-  sudo touch /var/lib/tor/standup/authorized_clients/fullynoded.auth
+  touch /var/lib/tor/standup/authorized_clients/fullynoded.auth
 
   # Write the pubkey to the file
-  sudo echo $PUBKEY > /var/lib/tor/standup/authorized_clients/fullynoded.auth
+  echo $PUBKEY > /var/lib/tor/standup/authorized_clients/fullynoded.auth
 
   # Restart tor for authentication to take effect
-  sudo systemctl restart tor.service
+  systemctl restart tor.service
 
   echo "$0 - Successfully added Tor V3 authentication"
 
@@ -267,24 +272,20 @@ echo "$0 - Downloading Bitcoin; this will also take a while!"
 
 export BITCOINPLAIN=`echo $BITCOIN | sed 's/bitcoin-core/bitcoin/'`
 
-sudo -u standup mkdir ~standup/.logs
+sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz -o ~standup/wget-btc-output.txt -O ~standup/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz
+sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/SHA256SUMS.asc -o ~standup/wget-btc-sha-asc-output.txt -O ~standup/SHA256SUMS.asc
+sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/SHA256SUMS -o ~standup/wget-btc-sha-output.txt -O ~standup/SHA256SUMS
 
-sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz -O ~standup/$BITCOINPLAIN-x86_64-linux-gnu.tar.gz -a ~standup/.logs/wget
-sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/SHA256SUMS.asc -O ~standup/SHA256SUMS.asc -a ~standup/.logs/wget
-sudo -u standup wget https://bitcoincore.org/bin/$BITCOIN/SHA256SUMS -O ~standup/SHA256SUMS -a ~standup/.logs/wget
+# Importing Builder Keys
 
-sudo -u standup wget https://raw.githubusercontent.com/bitcoin/bitcoin/23.x/contrib/builder-keys/keys.txt -O ~standup/keys.txt -a ~standup/.logs/wget
-sudo -u standup  sh -c 'while read fingerprint keyholder_name; do gpg --keyserver hkps://keys.openpgp.org --recv-keys ${fingerprint}; done < ~standup/keys.txt'
-
-cat ~standup/.logs/wget >> /standup.log
-cat ~standup/.logs/wget >> /standup.err
-rm -r ~standup/.logs
+sudo -u standup git clone https://github.com/bitcoin-core/guix.sigs ~standup/guix.sigs
+sudo -u standup gpg --import ~standup/guix.sigs/builder-keys/*
 
 # Verifying Bitcoin: Signature
 echo "$0 - Verifying Bitcoin."
 
-export SHASIG=`sudo -u standup /usr/bin/gpg --verify ~standup/SHA256SUMS.asc ~standup/SHA256SUMS 2>&1 | grep "Good signature"`
-export SHACOUNT=`sudo -u standup /usr/bin/gpg --verify ~standup/SHA256SUMS.asc ~standup/SHA256SUMS 2>&1 | grep "Good signature" | wc -l`
+export SHASIG=`sudo -u standup /usr/bin/gpg --verify ~standup/SHA256SUMS.asc 2>&1 | grep "Good signature"`
+export SHACOUNT=`sudo -u standup /usr/bin/gpg --verify ~standup/SHA256SUMS.asc 2>&1 | grep "Good signature" | wc -l`
 
 if [ "$SHASIG" ]
 then
@@ -328,6 +329,7 @@ fi
 cp -r ~standup/$BITCOINPLAIN/share/man/man1 /usr/local/share/man
 command -v mandb && mandb 
 
+/bin/rm -rf ~standup/guix.sigs
 /bin/rm -rf ~standup/$BITCOINPLAIN/
 
 # Start Up Bitcoin
@@ -415,7 +417,7 @@ EOF
 # Setup bitcoind as a service that requires Tor
 echo "$0 - Setting up Bitcoin as a systemd service."
 
-sudo cat > /etc/systemd/system/bitcoind.service << EOF
+cat > /etc/systemd/system/bitcoind.service << EOF
 # It is not recommended to modify this file in-place, because it will
 # be overwritten during package upgrades. If you want to add further
 # options or overwrite existing ones then use
@@ -477,28 +479,28 @@ WantedBy=multi-user.target
 EOF
 
 echo "$0 - Starting bitcoind service"
-sudo systemctl enable bitcoind.service
-sudo systemctl start bitcoind.service
+systemctl enable bitcoind.service
+systemctl start bitcoind.service
 
 ####
 # 7. Install QR encoder and displayer, and show the btcstandup:// uri in plain text incase the QR Code does not display
 ####
 
 # Get the Tor onion address for the QR code
-HS_HOSTNAME=$(sudo cat /var/lib/tor/standup/hostname)
+HS_HOSTNAME=$(cat /var/lib/tor/standup/hostname)
 
 # Create the QR string
 QR="btcstandup://StandUp:$RPCPASSWORD@$HS_HOSTNAME:8332/?label=LinodeStandUp.sh"
 echo "$0 - Ready to display the QuickConnect QR, first we need to install qrencode and fim"
 
 # Get software packages for encoding a QR code and displaying it in a terminal
-sudo apt-get install qrencode -y
+apt-get install qrencode -y
 
 # Create the QR
-sudo qrencode -m 10 -o qrcode.png "$QR"
+qrencode -m 10 -o qrcode.png "$QR"
 
 # Add uri to /standup.uri
-echo $QR | sudo tee -a /standup.uri
+echo $QR > /standup.uri
 
 # Install CypherpunkPay
 # Ref. https://cypherpunkpay.org/installation/quick-start/
@@ -552,3 +554,8 @@ echo "$0 - You can manually start Bitcoin with: sudo systemctl start bitcoind.se
 
 # Finished, exit script
 exit 1
+
+
+v1.157.0
+API Reference
+Provide Feedback
