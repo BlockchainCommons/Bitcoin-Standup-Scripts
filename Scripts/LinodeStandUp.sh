@@ -220,6 +220,7 @@ sed -i -e 's/## address y:z./## address y:z.\
 \
 HiddenServiceDir \/var\/lib\/tor\/standup\/\
 HiddenServiceVersion 3\
+HiddenServicePort 38332 127.0.0.1:38332\
 HiddenServicePort 18332 127.0.0.1:18332\
 HiddenServicePort 18443 127.0.0.1:18443\
 HiddenServicePort 8332 127.0.0.1:8332\
