@@ -228,6 +228,7 @@ HiddenServicePort 8332 127.0.0.1:8332
 
 HiddenServiceDir /var/lib/tor/bitcoin/testnet/
 HiddenServiceVersion 3
+HiddenServicePort 18332 127.0.0.1:38332
 HiddenServicePort 18332 127.0.0.1:18332
 
 HiddenServiceDir /var/lib/tor/bitcoin/regtest/
