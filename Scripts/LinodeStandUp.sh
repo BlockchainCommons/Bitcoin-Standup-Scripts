@@ -48,11 +48,11 @@
 #
 # <UDF name="userpassword" label="StandUp Password" example="Password to for the standup non-privileged account." />
 # USERPASSWORD=
-# <UDF name="btctype" label="Installation Type" oneOf="Mainnet,Pruned Mainnet,Testnet,Pruned Testnet,Private Regtest" default="Pruned Testnet" example="Bitcoin node type" optional="true"/>
+# <UDF name="btctype" label="Installation Type" oneOf="Mainnet,Pruned Mainnet,Signet,Pruned Signet,Testnet,Pruned Testnet,Private Regtest" default="Pruned Signet" example="Bitcoin node type" optional="true"/>
 # BTCTYPE=
-# <UDF name="hostname" label="Short Hostname" example="Example: bitcoincore-testnet-pruned"/>
+# <UDF name="hostname" label="Short Hostname" example="Example: bitcoincore-signet-pruned"/>
 # HOSTNAME=
-# <UDF name="fqdn" label="Fully Qualified Hostname" example="Example: bitcoincore-testnet-pruned.local or bitcoincore-testnet-pruned.domain.com"/>
+# <UDF name="fqdn" label="Fully Qualified Hostname" example="Example: bitcoincore-signet-pruned.local or bitcoincore-signet-pruned.domain.com"/>
 # FQDN=
 # <UDF name="region" label="Timezone" oneOf="Asia/Singapore,America/Los_Angeles" default="America/Los_Angeles" example="Servers location" optional="false"/>
 # REGION=
@@ -337,7 +337,8 @@ echo "$0 - Configuring Bitcoin."
 
 sudo -u standup /bin/mkdir ~standup/.bitcoin
 
-# The only variation between Mainnet and Testnet is that Testnet has the "testnet=1" variable
+# The only variation between Mainnet, Testnet, or Signet is the "testnet=1" or "signet=1" variable
+
 # The only variation between Regular and Pruned is that Pruned has the "prune=550" variable, which is the smallest possible prune
 RPCPASSWORD=$(xxd -l 16 -p /dev/urandom)
 
@@ -355,7 +356,7 @@ EOF
 
 if [[ "$BTCTYPE" == "" ]]; then
 
-BTCTYPE="Pruned Testnet"
+BTCTYPE="Pruned Signet"
 
 fi
 
@@ -383,6 +384,20 @@ elif [[ "$BTCTYPE" == "Pruned Testnet" ]]; then
 cat >> ~standup/.bitcoin/bitcoin.conf << EOF
 prune=550
 testnet=1
+EOF
+
+elif [[ "$BTCTYPE" == "Signet" ]]; then
+
+cat >> ~standup/.bitcoin/bitcoin.conf << EOF
+txindex=1
+signet=1
+EOF
+
+elif [[ "$BTCTYPE" == "Pruned Signet" ]]; then
+
+cat >> ~standup/.bitcoin/bitcoin.conf << EOF
+prune=550
+signet=1
 EOF
 
 elif [[ "$BTCTYPE" == "Private Regtest" ]]; then
