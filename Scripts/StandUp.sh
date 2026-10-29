@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#  Updated to install Bitcoin-Core 31.1 on 2026-08-06
+#  Updated to install Bitcoin-Core 32.1 on 2026-10-29
 
 # DISCLAIMER: It is not a good idea to store large amounts of Bitcoin on a VPS,
 # ideally you should use this as a watch-only wallet. This script is expiramental
@@ -307,7 +307,7 @@ echo "$0 - Downloading Bitcoin; this will also take a while!"
 
 # CURRENT BITCOIN RELEASE:
 # Change as necessary
-export BITCOIN="bitcoin-core-31.1"
+export BITCOIN="bitcoin-core-32.1"
 export BITCOINPLAIN=`echo $BITCOIN | sed 's/bitcoin-core/bitcoin/'`
 
 sudo -u standup mkdir ~standup/.logs
